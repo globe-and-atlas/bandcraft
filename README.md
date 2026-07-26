@@ -1,28 +1,49 @@
-# bandcraft
+# Bandcraft
 
-Scaffolded from `project-template` using the `frontend-app` profile.
+Bandcraft is an interactive remote-sensing lab for AP Environmental Science (APES). Students combine real satellite bands, evaluate real spectral-index formulas, compare Sentinel-2 MSI and Landsat-8 OLI/TIRS band numbering, and inspect the physical reasoning behind each result.
 
-## Project Profile
+It is a standalone educational project in the Globe & Atlas / Limn-Atlas ecosystem.
 
-- `profile`: `frontend-app`
-- `deploy`: `vercel`
-- `runtime`: `node`
-- `loop_mode`: `artifact`
-- `knowledge_level`: `standard`
+## What is included
 
-## Workshop Standard
+- Real 2-band and 3-band index recipes, including NDVI, NDWI, NDBI, NBR, EVI, NDRE, and MNDWI.
+- Sensor-aware band cards for Sentinel-2 and Landsat-8.
+- A Field Guide covering the missions, sensors, and environmental applications.
+- Simulated true-color and false-color index views.
+- A spectral reflectance curve inspector with active-band markers.
+- A satellite-pass landing screen using the generated artwork in `public/satellite-pass.png`.
 
-This project follows the 3-layer architecture:
+Unmatched band pairs receive an honest explanation instead of being presented as a fabricated scientific result.
 
-```text
-directives/     Layer 1 — What to do
-agent           Layer 2 — Decide → Delegate → Verify
-execution/      Layer 3 — Deterministic execution (when this profile uses it)
+## Run locally
+
+```bash
+npm install
+npm run dev
 ```
 
-## Next Steps
+Then open the local Vite URL shown in the terminal.
 
-1. Fill in the actual project description here.
-2. Update `task.md` with the first real milestone.
-3. Populate `knowledge/context.md`.
-4. Draft the first workflow directive in `directives/`.
+## Verify
+
+```bash
+npm run test:unit
+npm run build
+```
+
+## Project structure
+
+- `src/data/` — band definitions, index formulas, mission data, and unit tests
+- `src/App.tsx` — the main workbench and landing screen
+- `src/FieldGuide.tsx` — mission and sensor reference material
+- `src/SplitSatelliteViewer.tsx` — true-color / simulated-index comparison view
+- `src/SpectralCurveInspector.tsx` — reflectance signature visualization
+- `public/cards/` — card artwork used by the index recipes
+
+## Imagery
+
+The index-card imagery is credited in the in-app Field Guide. The landing-screen satellite artwork is included as presentation art for this prototype.
+
+## Status
+
+Bandcraft is an actively developed educational prototype and free web release. The current app is intentionally focused on inspectable band math rather than an economy or resource-limiting game loop.

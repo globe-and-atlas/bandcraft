@@ -2,13 +2,31 @@
   "name": "bandcraft",
   "private": true,
   "version": "0.1.0",
+  "description": "An interactive satellite band math and remote-sensing lab for AP Environmental Science.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/globe-and-atlas/bandcraft.git"
+  },
+  "bugs": {
+    "url": "https://github.com/globe-and-atlas/bandcraft/issues"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:unit": "vitest run"
   },
   "devDependencies": {
-    "vite": "^7.0.0"
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.6",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   }
 }
