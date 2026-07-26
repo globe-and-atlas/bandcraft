@@ -1,0 +1,7 @@
+{
+  "profile": "frontend-app",
+  "deploy": "vercel",
+  "runtime": "node",
+  "loop_mode": "artifact",
+  "knowledge_level": "standard"
+}
