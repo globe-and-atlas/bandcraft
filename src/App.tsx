@@ -15,7 +15,6 @@ import FieldGuideModal from './FieldGuide';
 import SplitSatelliteViewer from './SplitSatelliteViewer';
 import FlippableBandCard from './FlippableBandCard';
 import FormulaLab from './FormulaLab';
-import SatelliteModal, { type SatelliteModalId } from './SatelliteModal';
 
 type CombineResult =
   | { kind: 'match'; recipe: IndexRecipe }
@@ -47,7 +46,6 @@ export default function App() {
   const [result, setResult] = useState<CombineResult | null>(null);
   const [isFieldGuideOpen, setIsFieldGuideOpen] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState<'guided' | 'formula-lab'>('guided');
-  const [activeSatelliteModal, setActiveSatelliteModal] = useState<SatelliteModalId | null>(null);
 
   const activeBands = getBandsForMode(satelliteMode);
 
@@ -122,7 +120,6 @@ export default function App() {
   return (
     <React.Fragment>
       {isFieldGuideOpen && <FieldGuideModal onClose={() => setIsFieldGuideOpen(false)} />}
-      {activeSatelliteModal && <SatelliteModal satelliteId={activeSatelliteModal} onClose={() => setActiveSatelliteModal(null)} />}
 
       <div className="game-layout">
         <header className="game-header flex items-center justify-between">
@@ -187,18 +184,9 @@ export default function App() {
                       type="button"
                       className={`btn-small ${satelliteMode === 'sentinel2' ? 'active-mode' : ''}`}
                       onClick={() => { setSatelliteMode('sentinel2'); setSelectedBandIds([]); setResult(null); }}
-                      style={satelliteMode === 'sentinel2' ? { background: '#0284c7', color: '#fff', fontWeight: 800, borderTopRightRadius: 0, borderBottomRightRadius: 0 } : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8', borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                      style={satelliteMode === 'sentinel2' ? { background: '#0284c7', color: '#fff', fontWeight: 800 } : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8' }}
                     >
                       🇪🇺 Sentinel-2 MSI Mode
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-small sat-spec-info-btn"
-                      onClick={() => setActiveSatelliteModal('sentinel2')}
-                      title="Learn about Sentinel-2 Satellite Mission Specs (ⓘ)"
-                      style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeft: '1px solid rgba(255,255,255,0.2)', background: 'rgba(56,189,248,0.2)', color: '#38bdf8', fontWeight: 800, padding: '0 8px', fontSize: '0.9rem' }}
-                    >
-                      ⓘ
                     </button>
                   </div>
 
@@ -207,18 +195,9 @@ export default function App() {
                       type="button"
                       className={`btn-small ${satelliteMode === 'landsat8' ? 'active-mode' : ''}`}
                       onClick={() => { setSatelliteMode('landsat8'); setSelectedBandIds([]); setResult(null); }}
-                      style={satelliteMode === 'landsat8' ? { background: '#0284c7', color: '#fff', fontWeight: 800, borderTopRightRadius: 0, borderBottomRightRadius: 0 } : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8', borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                      style={satelliteMode === 'landsat8' ? { background: '#0284c7', color: '#fff', fontWeight: 800 } : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8' }}
                     >
                       🇺🇸 Landsat-8 OLI/TIRS Mode
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-small sat-spec-info-btn"
-                      onClick={() => setActiveSatelliteModal('landsat8')}
-                      title="Learn about Landsat-8 Satellite Mission Specs (ⓘ)"
-                      style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeft: '1px solid rgba(255,255,255,0.2)', background: 'rgba(245,158,11,0.2)', color: '#fbbf24', fontWeight: 800, padding: '0 8px', fontSize: '0.9rem' }}
-                    >
-                      ⓘ
                     </button>
                   </div>
                 </div>
