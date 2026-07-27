@@ -14,36 +14,69 @@ import {
 import {
   getBandForMode,
   getBandsForMode,
-  type SatelliteMode
+  type SatelliteMode,
+  type BandId
 } from './data/indices';
 
 interface FormulaLabProps {
   satelliteMode: SatelliteMode;
 }
 
-function scoreTone(score: number): 'strong' | 'mixed' | 'weak' {
-  if (score >= 85) return 'strong';
-  if (score >= 70) return 'mixed';
-  return 'weak';
-}
+const CANONICAL_PRESETS: Array<{
+  name: string;
+  glyph: string;
+  targetId: LabTargetId;
+  templateId: FormulaTemplateId;
+  bands: ReflectanceBandId[];
+  desc: string;
+}> = [
+  {
+    name: 'Start with NDVI',
+    glyph: '🌿',
+    targetId: 'vegetation',
+    templateId: 'normalized-difference',
+    bands: ['nir', 'red'],
+    desc: 'Standard Vegetation Index (NIR vs Red)'
+  },
+  {
+    name: 'Start with NDWI',
+    glyph: '💧',
+    targetId: 'water',
+    templateId: 'normalized-difference',
+    bands: ['green', 'nir'],
+    desc: 'Water Body Index (Green vs NIR)'
+  },
+  {
+    name: 'Start with NBR',
+    glyph: '🔥',
+    targetId: 'burn',
+    templateId: 'normalized-difference',
+    bands: ['nir', 'swir2'],
+    desc: 'Wildfire Burn Severity (NIR vs SWIR2)'
+  },
+  {
+    name: 'Start with NDBI',
+    glyph: '🏗️',
+    targetId: 'built',
+    templateId: 'normalized-difference',
+    bands: ['swir1', 'nir'],
+    desc: 'Urban Built-Up Index (SWIR1 vs NIR)'
+  }
+];
 
-function ScoreMeter({ label, score, note }: { label: string; score: number; note: string }) {
-  return (
-    <div className={`lab-score-card ${scoreTone(score)}`}>
-      <div className="lab-score-heading">
-        <span>{label}</span>
-        <strong>{score}</strong>
-      </div>
-      <div className="lab-score-track" aria-hidden="true">
-        <span style={{ width: `${Math.max(0, Math.min(100, score))}%` }} />
-      </div>
-      <p>{note}</p>
-    </div>
-  );
-}
+const BAND_COLORS: Record<BandId, string> = {
+  blue: '#3b82f6',
+  green: '#10b981',
+  red: '#ef4444',
+  rededge: '#f43f5e',
+  nir: '#a855f7',
+  swir1: '#f59e0b',
+  swir2: '#ea580c',
+  thermal: '#ec4899'
+};
 
 function classLabel(classId: string): string {
-  return classId === 'soil' ? 'Bare soil' : classId.charAt(0).toUpperCase() + classId.slice(1);
+  return classId === 'soil' ? 'Bare Soil' : classId.charAt(0).toUpperCase() + classId.slice(1);
 }
 
 export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
@@ -59,6 +92,15 @@ export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
     () => getBandsForMode(satelliteMode).filter((band): band is typeof band & { id: ReflectanceBandId } => band.id !== 'thermal'),
     [satelliteMode]
   );
+
+  const applyPreset = (preset: typeof CANONICAL_PRESETS[0]) => {
+    setTargetId(preset.targetId);
+    setTemplateId(preset.templateId);
+    setBands(preset.bands);
+    const targetObj = getLabTarget(preset.targetId);
+    setHypothesis(targetObj.defaultHypothesis);
+    setResult(evaluateFormulaCandidate(preset.templateId, preset.bands, preset.targetId, targetObj.defaultHypothesis));
+  };
 
   const setTarget = (nextTargetId: LabTargetId) => {
     const nextTarget = getLabTarget(nextTargetId);
@@ -92,17 +134,42 @@ export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
 
   return (
     <section className="formula-lab" aria-labelledby="formula-lab-title">
+      {/* Hero Header */}
       <div className="formula-lab-hero">
-        <div>
-          <span className="formula-lab-kicker">ADVANCED MODE · HYPOTHESIS → FORMULA → REFUTATION</span>
-          <h2 id="formula-lab-title">Limn Signal Formula Lab</h2>
-          <p>Build one explainable candidate, then test it against the surfaces most likely to fool it.</p>
+        <div className="formula-lab-hero-copy">
+          <span className="formula-lab-kicker">OPTIONAL EXPLORATION · HYPOTHESIS SANDBOX</span>
+          <h2 id="formula-lab-title">Formula Lab: Find the confuser</h2>
+          <p>
+            Start with a known index or change one band, then see whether the signal still separates your target from the surfaces most likely to fool it. This is a teaching comparison, not a detector-discovery or validation tool.
+          </p>
+          <div className="lab-purpose-line">
+            <span>THE POINT</span>
+            <strong>Can this contrast answer one narrow question without confusing the target with something else?</strong>
+          </div>
         </div>
-        <span className="experimental-seal">EXPERIMENTAL<br />NOT VALIDATED</span>
+        <div className="lab-preset-bar" role="group" aria-label="Quick preset recipes">
+          <span className="preset-bar-title">Start from a known answer</span>
+          <div className="preset-button-row">
+            {CANONICAL_PRESETS.map(preset => (
+              <button
+                key={preset.name}
+                type="button"
+                className="lab-preset-chip"
+                title={preset.desc}
+                onClick={() => applyPreset(preset)}
+              >
+                <span>{preset.glyph}</span> {preset.name}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
+      {/* Step 1: Target Selection */}
       <div className="lab-step-panel">
-        <div className="lab-step-marker"><span>01</span> State the environmental question</div>
+        <div className="lab-step-marker">
+          <span>01</span> Name the surface you want to separate
+        </div>
         <div className="lab-target-grid" role="group" aria-label="Environmental target">
           {LAB_TARGETS.map(item => (
             <button
@@ -112,24 +179,27 @@ export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
               onClick={() => setTarget(item.id)}
             >
               <strong>{item.name}</strong>
-              <span>Baseline: {item.baselineName}</span>
+              <span>Industry Standard: {item.baselineName}</span>
             </button>
           ))}
         </div>
         <p className="lab-question">{target.question}</p>
         <label className="lab-hypothesis-field">
-          <span>My physical hypothesis</span>
+          <span>Your reason, in plain language</span>
           <textarea
             value={hypothesis}
             rows={2}
             onChange={event => { setHypothesis(event.target.value); setResult(null); }}
-            placeholder="Explain why these wavelengths should respond differently."
+            placeholder="Explain why these wavelength bands should respond differently over this target surface..."
           />
         </label>
       </div>
 
+      {/* Step 2: Formula Building & Band Selection */}
       <div className="lab-step-panel">
-        <div className="lab-step-marker"><span>02</span> Choose a bounded formula family</div>
+        <div className="lab-step-marker">
+          <span>02</span> Choose a contrast to test
+        </div>
         <div className="lab-template-grid" role="group" aria-label="Formula family">
           {FORMULA_TEMPLATES.map(item => (
             <button
@@ -140,116 +210,183 @@ export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
             >
               <strong>{item.name}</strong>
               <code>{item.shortFormula}</code>
-              <small>{item.roleLabels.length} bands</small>
+              <small>{item.roleLabels.length} BANDS</small>
             </button>
           ))}
         </div>
-        <p className="lab-template-description">{template.description}</p>
+        <p className="lab-template-description"><strong>What changes?</strong> {template.description}</p>
 
+        {/* Band Role Dropdowns */}
         <div className="lab-role-grid">
-          {template.roleLabels.map((role, index) => (
-            <label key={role} className="lab-role-card">
-              <span>{role}</span>
-              <select
-                value={bands[index]}
-                onChange={event => setBandRole(index, event.target.value as ReflectanceBandId)}
-              >
-                {availableBands.map(band => (
-                  <option key={band.id} value={band.id}>
-                    {band.bandCode} · {band.name}
-                  </option>
-                ))}
-              </select>
-              <small>{getBandForMode(bands[index], satelliteMode).wavelength}</small>
-            </label>
-          ))}
+          {template.roleLabels.map((role, index) => {
+            const currentBandId = bands[index];
+            const bandColor = BAND_COLORS[currentBandId] || '#38bdf8';
+            return (
+              <label key={role} className="lab-role-card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: bandColor, boxShadow: `0 0 6px ${bandColor}` }} />
+                  <span>{role}</span>
+                </div>
+                <select
+                  value={currentBandId}
+                  onChange={event => setBandRole(index, event.target.value as ReflectanceBandId)}
+                >
+                  {availableBands.map(band => (
+                    <option key={band.id} value={band.id}>
+                      {band.bandCode} · {band.name} ({band.wavelength})
+                    </option>
+                  ))}
+                </select>
+                <small>Wavelength: {getBandForMode(currentBandId, satelliteMode).wavelength}</small>
+              </label>
+            );
+          })}
         </div>
 
+        {/* Live Mathematical Formula Readout Banner */}
         <div className="lab-formula-readout">
           <div>
-            <span>Candidate expression</span>
+            <span>CANDIDATE FORMULA</span>
             <code>{formula}</code>
           </div>
-          <button type="button" className="lab-run-button" onClick={runChallenge}>
-            Run confuser challenge →
+          <button type="button" className="lab-run-button" onClick={runChallenge} aria-label="Run the confuser check across 15 reference surfaces">
+            Run the confuser check →
           </button>
         </div>
       </div>
 
+      {/* Step 3: Interactive Stress-Test Results */}
       {result && (
         <div className="lab-results-panel" aria-live="polite">
           <div className="lab-result-heading">
             <div>
-              <span className="lab-step-marker"><span>03</span> Try to break it</span>
-              <h3>{result.verdict}</h3>
+              <div className="lab-step-marker">
+                <span>03</span> Read the result
+              </div>
+              <h3 style={{ color: result.contrastScore >= 75 ? '#4ade80' : result.contrastScore >= 50 ? '#fbbf24' : '#f87171' }}>
+                {result.contrastScore >= 75 ? '🏆 ' : result.contrastScore >= 50 ? '⚠️ ' : '❌ '}
+                {result.verdict}
+              </h3>
             </div>
-            <div className={`lab-baseline-delta ${result.baselineDelta > 0 ? 'positive' : result.baselineDelta < 0 ? 'negative' : ''}`}>
-              <span>vs {target.baselineName} in teaching set</span>
-              <strong>{result.baselineDelta > 0 ? '+' : ''}{result.baselineDelta} pairwise score</strong>
+            <div className={`lab-baseline-delta ${result.baselineDelta >= 0 ? 'positive' : 'negative'}`}>
+              <span>vs established {target.baselineName}</span>
+              <strong>{result.baselineDelta >= 0 ? '+' : ''}{result.baselineDelta} Pairwise Points</strong>
             </div>
           </div>
 
-          <div className="lab-score-grid">
-            <ScoreMeter
-              label="Teaching contrast"
-              score={result.contrastScore}
-              note={`Mean ${target.name.toLowerCase()} response is ${result.direction} than the confuser mean.`}
-            />
-            <ScoreMeter
-              label="Pairwise ordering"
-              score={result.robustnessScore}
-              note={`Ordering across 3 hand-authored target signatures and 12 confusers. ${target.baselineName}: ${result.baselineRobustness}.`}
-            />
-            <ScoreMeter
-              label="Heuristic clarity"
-              score={result.interpretabilityScore}
-              note="Rewards a stated physical hypothesis, unique band roles, and a compact formula."
-            />
+          {/* Scores Overview Grid */}
+          <div className="lab-score-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', margin: '12px 0' }}>
+            <div className="lab-score-card" style={{ background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '8px', padding: '10px' }}>
+              <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Target separation</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#38bdf8' }}>{result.contrastScore}%</div>
+              <div style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '4px' }}>
+                Mean {target.name.toLowerCase()} response is {result.direction} than the other reference classes.
+              </div>
+            </div>
+
+            <div className="lab-score-card" style={{ background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '8px', padding: '10px' }}>
+              <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Pairwise order</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#c084fc' }}>{result.robustnessScore}%</div>
+              <div style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '4px' }}>
+                How often the target ranks above or below 12 confuser signatures.
+              </div>
+            </div>
+
+            <div className="lab-score-card" style={{ background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px', padding: '10px' }}>
+              <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Hypothesis fit</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#4ade80' }}>{result.interpretabilityScore}%</div>
+              <div style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '4px' }}>
+                Did you name a reason and keep the band roles distinct?
+              </div>
+            </div>
           </div>
 
-          <div className={`lab-challenge-card ${result.challenge.passesExpectedOrder ? 'pass' : 'fail'}`}>
-            <div>
-              <span>Closest confuser</span>
-              <strong>{result.challenge.targetLabel} ↔ {result.challenge.confuserLabel}</strong>
-            </div>
-            <div className="lab-challenge-values">
-              <code>{result.challenge.targetValue.toFixed(3)}</code>
-              <span>gap {result.challenge.gap.toFixed(3)}</span>
-              <code>{result.challenge.confuserValue.toFixed(3)}</code>
-            </div>
-            <p>
+          <div className={`lab-result-takeaway ${result.challenge.passesExpectedOrder ? 'pass' : 'fail'}`}>
+            <span>DECISION SIGNAL</span>
+            <strong>
               {result.challenge.passesExpectedOrder
-                ? 'This closest pair still follows the candidate’s overall direction—but it is where the formula is most vulnerable.'
-                : 'This pair reverses the candidate’s expected direction. The confuser breaks the rule.'}
+                ? `Keep testing: ${target.name.toLowerCase()} stays ${result.direction} than its closest confuser in this reference set.`
+                : `Stop and revise: the closest confuser outranks the ${target.name.toLowerCase()} target in this reference set.`}
+            </strong>
+            <p>
+              Use this to decide whether to keep the established {target.baselineName}, change one band, or compare another target. It is evidence for a classroom hypothesis—not proof that a new index works on satellite imagery.
             </p>
           </div>
 
-          <details className="lab-reference-table">
-            <summary>Inspect all 15 teaching signatures</summary>
-            <div className="lab-reference-scroll">
-              <table>
+          {/* Toughest Confuser Challenge Matchup */}
+          <div className={`lab-challenge-card ${result.challenge.passesExpectedOrder ? 'pass' : 'fail'}`}>
+            <div>
+              <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: '#94a3b8' }}>Closest confuser · where the formula is most likely to fail</span>
+              <strong style={{ fontSize: '0.9rem', display: 'block', color: '#f8fafc' }}>
+                {result.challenge.targetLabel} ↔ {result.challenge.confuserLabel}
+              </strong>
+            </div>
+            <div className="lab-challenge-values">
+              <span style={{ background: 'rgba(34, 197, 94, 0.2)', border: '1px solid #22c55e', color: '#4ade80', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                Target: {result.challenge.targetValue.toFixed(3)}
+              </span>
+              <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>vs</span>
+              <span style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', color: '#f87171', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                Confuser: {result.challenge.confuserValue.toFixed(3)}
+              </span>
+            </div>
+            <p style={{ fontSize: '0.74rem', color: '#cbd5e1', margin: '6px 0 0 0' }}>
+              {result.challenge.passesExpectedOrder
+                ? `The target keeps the expected ${result.direction} ordering against this closest confuser.`
+                : 'The confuser reverses the expected ordering. That overlap is the useful lesson here.'}
+            </p>
+          </div>
+
+          <div className="lab-evidence-note">
+            <strong>Reference boundary</strong>
+            <span>These 15 values are hand-authored teaching signatures: plausible reflectance patterns, not observations, training data, or scientific validation.</span>
+          </div>
+
+          {/* Visual 15 Surface Response Bar Breakdown */}
+          <details className="lab-reference-table" style={{ marginTop: '12px' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#38bdf8', padding: '8px 0' }}>
+              Show all 15 reference surfaces
+            </summary>
+            <div className="lab-reference-scroll" style={{ overflowX: 'auto', marginTop: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
                 <thead>
-                  <tr><th>Surface</th><th>Class</th><th>Candidate value</th><th>Role</th></tr>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', textAlign: 'left' }}>
+                    <th style={{ padding: '6px' }}>Surface Name</th>
+                    <th style={{ padding: '6px' }}>Surface Class</th>
+                    <th style={{ padding: '6px' }}>Computed Index Value</th>
+                    <th style={{ padding: '6px' }}>Visual Signal Bar</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {[...result.sampleResults]
                     .sort((a, b) => Number(b.isTarget) - Number(a.isTarget) || b.value - a.value)
-                    .map(sample => (
-                      <tr key={sample.id} className={sample.isTarget ? 'target' : ''}>
-                        <td>{sample.label}</td>
-                        <td>{classLabel(sample.classId)}</td>
-                        <td><code>{sample.value.toFixed(3)}</code></td>
-                        <td>{sample.isTarget ? 'Target' : 'Confuser'}</td>
-                      </tr>
-                    ))}
+                    .map(sample => {
+                      const normalizedVal = Math.max(-1, Math.min(1, sample.value));
+                      const barPct = Math.max(2, ((normalizedVal + 1) / 2) * 100);
+                      const barColor = sample.isTarget ? '#10b981' : '#64748b';
+                      return (
+                        <tr key={sample.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: sample.isTarget ? 'rgba(16, 185, 129, 0.08)' : 'transparent' }}>
+                          <td style={{ padding: '6px', fontWeight: sample.isTarget ? 800 : 500, color: sample.isTarget ? '#4ade80' : '#e2e8f0' }}>
+                            {sample.isTarget ? '🎯 ' : ''}{sample.label}
+                          </td>
+                          <td style={{ padding: '6px', color: '#94a3b8' }}>{classLabel(sample.classId)}</td>
+                          <td style={{ padding: '6px' }}>
+                            <code style={{ color: sample.isTarget ? '#4ade80' : '#94a3b8', fontFamily: 'monospace' }}>
+                              {sample.value.toFixed(3)}
+                            </code>
+                          </td>
+                          <td style={{ padding: '6px', width: '35%' }}>
+                            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                              <div style={{ width: `${barPct}%`, height: '100%', background: barColor, borderRadius: '4px' }} />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
           </details>
-
-          <p className="lab-validation-note">
-            These scores are teaching heuristics derived from 15 hand-authored signatures—not observations, model validation, or evidence of novelty. A publishable index still requires independent measurements, geographic and temporal holdouts, uncertainty analysis, and comparison on real imagery.
-          </p>
         </div>
       )}
     </section>

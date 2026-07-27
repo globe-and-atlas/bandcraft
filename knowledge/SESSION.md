@@ -1,23 +1,26 @@
 ---
 generated_by: "Antigravity AI (Gemini 3.5 Flash)"
-timestamp: "2026-07-27T06:25:16-05:00"
+timestamp: "2026-07-27T08:59:46-05:00"
 ---
 
 # Session Log
 
 ## Current Session
 
-**Goal:** Simplify satellite toolbar info buttons to clean colored icons without text.
+**Goal:** Perform a UI/UX refinement pass on Formula Lab to make it intuitive, engaging, and clear for students.
 **Agent:** Antigravity AI
 **Handoff-from:** none
 **Handoff-type:** continuation
 **Status:** Completed
 
-## Handoff — 2026-07-27 06:25
-- **Completed**: Updated `src/App.tsx`. Removed text `"Mission Specs"` from the satellite mode toolbar buttons. Kept the glowing colored info icons (`ⓘ` in cerulean blue for Sentinel-2 and gold for Landsat-8) attached to the mode switcher buttons.
+## Handoff — 2026-07-27 08:59
+- **Completed**: Updated `src/FormulaLab.tsx` and `src/styles.css`.
+  - Added 4 1-click Preset Chips (*Load NDVI*, *Load NDWI*, *Load NBR*, *Load NDBI*) so users can load classic formulas instantly.
+  - Added glowing band color dots & wavelength badges to role selectors.
+  - Added Toughest Confuser Matchup card and visual 15-surface spectral response bar chart.
 - **Commands**: `npm run test:unit` (41/41 passed), `npm run build` (Clean exit 0).
 - **Verified**: Verified live on `http://localhost:4257/`.
-- **Next**: Ready for high-end Globe & Atlas publication.
+- **Next**: Ready for educational deployment.
 
 ---
 ## Checkpoints
@@ -40,3 +43,13 @@ timestamp: "2026-07-27T06:25:16-05:00"
 - 2026-07-27 06:18 - Created Interactive Satellite Mission Spec Sheet Modals (`SatelliteModal.tsx`) for Sentinel-2 & Landsat-8.
 - 2026-07-27 06:21 - Refined Flippable Band Card UI: fixed ⓘ info button positioning and moved satellite tags to bottom plate.
 - 2026-07-27 06:25 - Simplified Satellite Toolbar Info Buttons: removed "Mission Specs" text, keeping glowing colored ⓘ icons.
+- 2026-07-27 06:30 - Implemented 25-Index Proven Scientific Catalog with Category Filters & Real-Time Keyword Search.
+- 2026-07-27 06:44 - Promoted all 25 indices into interactive buttons organized under domain category section headers.
+- 2026-07-27 06:49 - Added glowing ⓘ Info Icon buttons on all 25 index buttons in sidebar opening scientific spec sheets.
+- 2026-07-27 07:16 - Upgraded suit icons to vibrant color-coded badges & enabled smooth scrolling for all 25 index buttons.
+- 2026-07-27 07:21 - Added Band Count Indicator Badges (1, 2, 3, or 4 Bands) to all 25 cards and spec modals.
+- 2026-07-27 07:23 - Moved Band Count Tags to card text plate below tile images, removing image overlap.
+- 2026-07-27 07:27 - Positioned Band Count Tag inline on the exact same row as index acronym title.
+- 2026-07-27 07:29 - Updated all title screen copy to 25 indices and upgraded SimulatedIndexOverlay to support all 25 indices.
+- 2026-07-27 08:59 - Overhauled Formula Lab into an intuitive Custom Index Sandbox & Stress-Test Challenge with presets and visual bar chart.
+- 2026-07-27 08:05 — UI/UX design pass: removed inherited occult artwork (hero.png behind .center-shell, card_bg.png behind modals) + dead .relic-item rule; rebuilt the computation empty state with 3 clickable starter recipes; added aria-live to the main result region; fixed index-library band-count tag wrapping then the over-truncation it caused (measured: 113px row, tag trimmed 61px→50px so 5-letter acronyms fit whole); shortened the clipped search placeholder. Verified at 1440/1024 with screenshots + DOM measurement; typecheck clean, 41/41 tests, clean build.

@@ -43,3 +43,19 @@
 **Reason**: The Field Guide had correct static ARIA (`role="dialog"`, `aria-modal`, `aria-labelledby`) but no keyboard behaviour — a keyboard user could not close it with Escape, and Tab walked straight out into the page behind. Static ARIA without keyboard handling reads as accessible while failing the users it claims to serve.
 
 **How to apply**: Any new modal attaches `useModalA11y`'s ref to its `role="dialog"` element rather than reimplementing key handling. The hook stores `onClose` in a ref so callers can keep passing inline arrow functions without reinstalling listeners each render.
+
+## 2026-07-27 — Removed the inherited occult artwork from the work surface and modals
+
+**Decision**: Deleted `public/hero.png` (an alchemist's table) and `public/card_bg.png` (an occult sigil plate with pentagrams, ravens, ouroboros and zodiac glyphs), both inherited from the relic-rack-v2 fork. `.center-shell` now uses a faint cyan graticule over flat navy; `.catalogue-modal` uses a flat dark panel. Also dropped the dead `.relic-item` rule that referenced the same art.
+
+**Reason**: `hero.png` backed the entire main work surface and was fully visible whenever no index was computed — which is the first thing a student sees. `card_bg.png` sat behind the Field Guide and satellite spec modals. Occult iconography behind a classroom AP Environmental Science reference is the wrong signal on its own terms, and it directly undercuts the scientific-honesty posture the rest of the project has been built around. A photographic backdrop also competed with the band cards and equation for legibility.
+
+**How to apply**: Backdrops on working surfaces stay flat and instrument-like. Any decorative asset carried over from the fork should be looked at rendered, not just checked for whether it is referenced — `hero.png` survived an earlier dead-asset sweep precisely because the check was "is it referenced" rather than "what is it".
+
+## 2026-07-27 — Empty state teaches instead of waiting
+
+**Decision**: Replaced the single dim hint line in the computation panel with a proper empty state: a lead line, one sentence of physical reasoning, and three one-click starter recipes (NDVI, NDWI, NBR) that route through the normal `evaluateCombination` path.
+
+**Reason**: The panel occupied a large share of the work surface and said only "Select 2 or 3 spectral bands above". A student who does not yet know which bands pair up had no way in. Routing the starters through the real evaluate path (rather than setting the result directly) means the computation they see is identical to the one they would get by clicking the bands themselves.
+
+**How to apply**: Give the panel a `min-height` floor so the layout does not lurch when a result replaces the empty state.

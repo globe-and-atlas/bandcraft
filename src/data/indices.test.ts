@@ -75,7 +75,7 @@ describe('findRecipe', () => {
 
   it('returns null for every pair that is not one of the curated recipes', () => {
     const allBandIds = BANDS.map(b => b.id);
-    const recipePairs = new Set(INDEX_RECIPES.flatMap(r => [`${r.bands[0]}:${r.bands[1]}`, `${r.bands[1]}:${r.bands[0]}`]));
+    const recipePairs = new Set(INDEX_RECIPES.filter(r => r.bands.length === 2).flatMap(r => [`${r.bands[0]}:${r.bands[1]}`, `${r.bands[1]}:${r.bands[0]}`]));
     let checked = 0;
     for (const a of allBandIds) {
       for (const b of allBandIds) {

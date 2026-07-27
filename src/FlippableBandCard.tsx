@@ -47,18 +47,15 @@ export default function FlippableBandCard({ band, isSelected, onSelect }: Flippa
           aria-pressed={isSelected}
           aria-label={`${band.name} band, wavelength ${band.wavelength}`}
         >
-          <div className="card-top-sensor-tag">
-            <span className="sensor-chip">{band.sensorTag}</span>
-            <button
-              type="button"
-              className="card-info-btn"
-              onClick={handleInfoClick}
-              title="View Scientific Specs & Physics (ⓘ)"
-              aria-label={`Scientific specs for ${band.name}`}
-            >
-              ⓘ
-            </button>
-          </div>
+          <button
+            type="button"
+            className="card-info-btn"
+            onClick={handleInfoClick}
+            title="View Scientific Specs & Physics (ⓘ)"
+            aria-label={`Scientific specs for ${band.name}`}
+          >
+            ⓘ
+          </button>
 
           <div
             className={`relic-card-art band-swatch-${band.id}`}
@@ -74,7 +71,10 @@ export default function FlippableBandCard({ band, isSelected, onSelect }: Flippa
           </div>
 
           <div className="card-bottom-plate">
-            <strong>{band.name}</strong>
+            <div className="card-band-title-group">
+              <span className="sensor-chip">{band.sensorTag}</span>
+              <strong>{band.name}</strong>
+            </div>
           </div>
         </div>
 
