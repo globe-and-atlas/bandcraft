@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { getBandForMode, type IndexRecipe, type SatelliteMode } from './data/indices';
 import SpectralCurveInspector from './SpectralCurveInspector';
 

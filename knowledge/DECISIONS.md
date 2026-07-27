@@ -25,3 +25,21 @@
 **Reason**: Exhaustive permutation would produce search noise and encourage correlation hunting. A bounded hypothesis → formula → refutation loop teaches the role of formula structure while making failure and confounding surfaces visible.
 
 **How to apply**: New formula families require a plain-language physical interpretation, safe denominator behavior, deterministic tests, and a clear complexity cost. Any future real-data mode must use versioned independent labels, geographic and temporal holdouts, uncertainty reporting, and established-index baselines.
+
+## 2026-07-27 — Adopt tsc as a checker-only gate alongside Vite's esbuild build
+
+**Decision**: Added a `tsconfig.json` (strict, `noEmit`, `noUnusedLocals`/`noUnusedParameters`) plus a `typecheck` npm script wired into CI ahead of the unit tests.
+
+**Reason**: The project had no `tsconfig.json` at all. Vite builds through esbuild, which strips TypeScript types without checking them, and CI ran only `test:unit` + `build` — so nothing in the repo, locally or in CI, ever typechecked. Type errors could ship silently. Enabling it immediately surfaced a genuine (if runtime-benign) narrowing error in `SpectralCurveInspector.tsx` and independently confirmed a cluster of dead state in `App.tsx`.
+
+**Alternatives considered**: Folding `tsc -b` into the `build` script — rejected because it slows the dev/deploy path for a check that belongs in CI, and Vite still owns emit either way. `noEmit: true` keeps the roles unambiguous: esbuild builds, tsc only judges.
+
+**How to apply**: `npm run typecheck` must pass before any commit. Treat `noUnusedLocals` findings as real signal rather than noise — in this codebase the first run found actual dead code, not false positives.
+
+## 2026-07-27 — Modal keyboard behaviour lives in a shared hook, not per-modal
+
+**Decision**: Added `src/useModalA11y.ts` providing Escape-to-close, a Tab focus trap, focus restore to the triggering element, and background scroll lock. Applied to the Field Guide modal.
+
+**Reason**: The Field Guide had correct static ARIA (`role="dialog"`, `aria-modal`, `aria-labelledby`) but no keyboard behaviour — a keyboard user could not close it with Escape, and Tab walked straight out into the page behind. Static ARIA without keyboard handling reads as accessible while failing the users it claims to serve.
+
+**How to apply**: Any new modal attaches `useModalA11y`'s ref to its `role="dialog"` element rather than reimplementing key handling. The hook stores `onClose` in a ref so callers can keep passing inline arrow functions without reinstalling listeners each render.

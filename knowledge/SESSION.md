@@ -1,22 +1,22 @@
 ---
 generated_by: "Antigravity AI (Gemini 3.5 Flash)"
-timestamp: "2026-07-26T18:13:55-05:00"
+timestamp: "2026-07-27T06:25:16-05:00"
 ---
 
 # Session Log
 
 ## Current Session
 
-**Goal:** Unlock all 7 satellite indices by default and transform sidebar into an open Index Reference Library.
+**Goal:** Simplify satellite toolbar info buttons to clean colored icons without text.
 **Agent:** Antigravity AI
 **Handoff-from:** none
 **Handoff-type:** continuation
 **Status:** Completed
 
-## Handoff — 2026-07-26 18:13
-- **Completed**: Unlocked all 7 satellite indices (NDVI, EVI, NDWI, MNDWI, NDRE, NDBI, NBR) by default. Transformed right sidebar into **Index Reference Library** with NASA thumbnails, suit badges, mathematical formulas, and instant load/evaluate triggers. Updated header badge to `7 SATELLITE INDICES AVAILABLE`.
-- **Commands**: `npm run test:unit` (37/37 passed), `npm run build` (Clean exit 0).
-- **Verified**: Verified live in browser on `http://localhost:4257/`.
+## Handoff — 2026-07-27 06:25
+- **Completed**: Updated `src/App.tsx`. Removed text `"Mission Specs"` from the satellite mode toolbar buttons. Kept the glowing colored info icons (`ⓘ` in cerulean blue for Sentinel-2 and gold for Landsat-8) attached to the mode switcher buttons.
+- **Commands**: `npm run test:unit` (41/41 passed), `npm run build` (Clean exit 0).
+- **Verified**: Verified live on `http://localhost:4257/`.
 - **Next**: Ready for high-end Globe & Atlas publication.
 
 ---
@@ -36,8 +36,7 @@ timestamp: "2026-07-26T18:13:55-05:00"
 - 2026-07-26 17:50 - Transformed "Build an Index" into an Interactive Real-Time Physics Sandbox.
 - 2026-07-26 17:53 - Implemented 3D Flippable Scientific Band Cards with ⓘ Info Icons and APES Physics Specs.
 - 2026-07-26 18:13 - Unlocked All 7 Satellite Indices by Default & Created Interactive Index Reference Library.
-
-## Checkpoint Log
-
-- 2026-07-26 22:49 — commit: feat: real-band index mechanic, Formula Lab, and UI/UX pass | .gitignore,README.md,index.html,knowledge/DECISIONS.md,knowledge/ERRORS.md
-- 2026-07-26 23:10 — Pre-release fix round: added React ErrorBoundary (src/ErrorBoundary.tsx, wired in main.tsx), fixed SpectralCurveInspector B04/B05 x-axis label overlap (stagger onto two rows), fixed Field Guide slider band-name label clipping into the track (.field-guide-slider-row / .slider-band-name), removed 8 dead legacy PNGs (~11MB) from public/ with zero-reference verification via grep, updated README to mention the Related Formulas tab. 41/41 unit tests pass, clean production build.
+- 2026-07-27 06:12 - Restored Preferred Satellite Pass Background Image (`satellite-pass.png`) on Title/Loading Screen.
+- 2026-07-27 06:18 - Created Interactive Satellite Mission Spec Sheet Modals (`SatelliteModal.tsx`) for Sentinel-2 & Landsat-8.
+- 2026-07-27 06:21 - Refined Flippable Band Card UI: fixed ⓘ info button positioning and moved satellite tags to bottom plate.
+- 2026-07-27 06:25 - Simplified Satellite Toolbar Info Buttons: removed "Mission Specs" text, keeping glowing colored ⓘ icons.

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useModalA11y } from './useModalA11y';
 import { TRAIT_FAMILIES, type FamilyId } from './data/suits';
 import { SATELLITES, getSatellitesForSuit } from './data/fieldGuide';
 import { INDEX_RECIPES, RELATED_FORMULAS, getBand, classifyIndexValue, type BandId } from './data/indices';
@@ -23,6 +24,7 @@ const BAND_WAVELENGTHS: Record<BandId, number> = {
 };
 
 export default function FieldGuideModal({ onClose }: FieldGuideModalProps) {
+  const modalRef = useModalA11y<HTMLDivElement>(onClose);
   const [tab, setTab] = useState<FieldGuideTab>('satellites');
   const [suitFilter, setSuitFilter] = useState<FamilyId | 'all'>('all');
   const [recipeId, setRecipeId] = useState(INDEX_RECIPES[0].id);
@@ -71,6 +73,7 @@ export default function FieldGuideModal({ onClose }: FieldGuideModalProps) {
   return (
     <div className="catalogue-modal-overlay" onClick={onClose}>
       <div
+        ref={modalRef}
         data-modal-root="true"
         role="dialog"
         aria-modal="true"

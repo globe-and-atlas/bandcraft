@@ -1,4 +1,3 @@
-import React from 'react';
 import { BANDS, getBand, type BandId, type IndexRecipe } from './data/indices';
 
 interface SpectralCurveInspectorProps {
@@ -159,8 +158,10 @@ export default function SpectralCurveInspector({ recipe }: SpectralCurveInspecto
   const points = profile.curve.map(pt => `${wlToX(pt.wl)},${valToY(pt.val)}`);
   const pathD = `M ${points.join(' L ')}`;
 
-  // Active optical bands in this recipe
-  const activeBandIds = recipe.bands.filter(bId => bId !== 'thermal');
+  // Active optical bands in this recipe. Annotated as the full BandId[] rather
+  // than the narrowed Exclude<BandId,'thermal'>[] the filter infers, so it can
+  // still be tested against an arbitrary band below without a cast.
+  const activeBandIds: BandId[] = recipe.bands.filter(bId => bId !== 'thermal');
 
   // Visible-light bands (Blue/Green/Red/RedEdge) sit within ~300nm of each
   // other while NIR/SWIR1/SWIR2 spread across the next 1400nm — real physics,

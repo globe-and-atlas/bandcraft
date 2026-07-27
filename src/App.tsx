@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  BANDS,
   INDEX_RECIPES,
   getBand,
   getBandForMode,
@@ -16,11 +15,10 @@ import FieldGuideModal from './FieldGuide';
 import SplitSatelliteViewer from './SplitSatelliteViewer';
 import FlippableBandCard from './FlippableBandCard';
 import FormulaLab from './FormulaLab';
-
-const SAVE_KEY = 'bandcraft-discovered-indices-v1';
+import SatelliteModal, { type SatelliteModalId } from './SatelliteModal';
 
 type CombineResult =
-  | { kind: 'match'; recipe: IndexRecipe; isNew: boolean }
+  | { kind: 'match'; recipe: IndexRecipe }
   | { kind: 'mismatch'; selected: BandId[]; reason: string };
 
 // Reads the band via the active satellite mode so the code shown here (e.g. NIR's
@@ -42,19 +40,14 @@ function EquationBandCard({ bandId, satelliteMode }: { bandId: BandId; satellite
   );
 }
 
-function loadDiscoveredIds(): Set<string> {
-  // All 7 indices unlocked by default for open educational exploration
-  return new Set(INDEX_RECIPES.map(r => r.id));
-}
-
 export default function App() {
   const [hasEnteredGame, setHasEnteredGame] = useState(false);
-  const [discoveredIds, setDiscoveredIds] = useState<Set<string>>(() => loadDiscoveredIds());
   const [satelliteMode, setSatelliteMode] = useState<SatelliteMode>('all');
   const [selectedBandIds, setSelectedBandIds] = useState<BandId[]>([]);
   const [result, setResult] = useState<CombineResult | null>(null);
   const [isFieldGuideOpen, setIsFieldGuideOpen] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState<'guided' | 'formula-lab'>('guided');
+  const [activeSatelliteModal, setActiveSatelliteModal] = useState<SatelliteModalId | null>(null);
 
   const activeBands = getBandsForMode(satelliteMode);
 
@@ -69,7 +62,7 @@ export default function App() {
       return;
     }
 
-    setResult({ kind: 'match', recipe, isNew: false });
+    setResult({ kind: 'match', recipe });
   };
 
   const handleBandClick = (bandId: BandId) => {
@@ -99,7 +92,7 @@ export default function App() {
   const selectDiscoveredIndex = (recipe: IndexRecipe) => {
     setSatelliteMode('all');
     setSelectedBandIds(recipe.bands);
-    setResult({ kind: 'match', recipe, isNew: false });
+    setResult({ kind: 'match', recipe });
   };
 
   if (!hasEnteredGame) {
@@ -129,18 +122,19 @@ export default function App() {
   return (
     <React.Fragment>
       {isFieldGuideOpen && <FieldGuideModal onClose={() => setIsFieldGuideOpen(false)} />}
+      {activeSatelliteModal && <SatelliteModal satelliteId={activeSatelliteModal} onClose={() => setActiveSatelliteModal(null)} />}
 
       <div className="game-layout">
         <header className="game-header flex items-center justify-between">
           <div className="header-brand-group flex items-center">
             <div className="header-title">
-              <span className="header-kicker">GLOBE & ATLAS | LIMN SIGNAL · SPECTRAL BANDCRAFT</span>
+              <span className="header-kicker">GLOBE & ATLAS | BANDCRAFT SPECTRAL LAB</span>
               <h1>Multispectral Remote Sensing Workstation</h1>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="discovery-counter-chip">
-              <strong>7 DOCUMENTED INDICES</strong>
+              <strong>7 SATELLITE INDICES AVAILABLE</strong>
             </div>
             <div className="workspace-switcher" role="group" aria-label="Choose workspace">
               <button
@@ -178,7 +172,7 @@ export default function App() {
                   <strong>Select 2 or 3 multispectral bands to compute a spectral index.</strong>
                   <span>Supports 2-band ratio pairs (NDVI, NDWI) and 3-band atmospheric formulas (EVI).</span>
                 </div>
-                <div className="satellite-mode-toolbar" style={{ display: 'flex', gap: '0.4rem', width: '100%' }}>
+                <div className="satellite-mode-toolbar" style={{ display: 'flex', gap: '0.4rem', width: '100%', alignItems: 'center' }}>
                   <button
                     type="button"
                     className={`btn-small ${satelliteMode === 'all' ? 'active-mode' : ''}`}
@@ -187,22 +181,46 @@ export default function App() {
                   >
                     🌐 All Sensors (8 Bands)
                   </button>
-                  <button
-                    type="button"
-                    className={`btn-small ${satelliteMode === 'sentinel2' ? 'active-mode' : ''}`}
-                    onClick={() => { setSatelliteMode('sentinel2'); setSelectedBandIds([]); setResult(null); }}
-                    style={satelliteMode === 'sentinel2' ? { background: '#0284c7', color: '#fff', fontWeight: 800 } : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8' }}
-                  >
-                    🇪🇺 Sentinel-2 MSI Mode
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn-small ${satelliteMode === 'landsat8' ? 'active-mode' : ''}`}
-                    onClick={() => { setSatelliteMode('landsat8'); setSelectedBandIds([]); setResult(null); }}
-                    style={satelliteMode === 'landsat8' ? { background: '#0284c7', color: '#fff', fontWeight: 800 } : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8' }}
-                  >
-                    🇺🇸 Landsat-8 OLI/TIRS Mode
-                  </button>
+
+                  <div className="toolbar-satellite-group" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      className={`btn-small ${satelliteMode === 'sentinel2' ? 'active-mode' : ''}`}
+                      onClick={() => { setSatelliteMode('sentinel2'); setSelectedBandIds([]); setResult(null); }}
+                      style={satelliteMode === 'sentinel2' ? { background: '#0284c7', color: '#fff', fontWeight: 800, borderTopRightRadius: 0, borderBottomRightRadius: 0 } : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8', borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                    >
+                      🇪🇺 Sentinel-2 MSI Mode
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-small sat-spec-info-btn"
+                      onClick={() => setActiveSatelliteModal('sentinel2')}
+                      title="Learn about Sentinel-2 Satellite Mission Specs (ⓘ)"
+                      style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeft: '1px solid rgba(255,255,255,0.2)', background: 'rgba(56,189,248,0.2)', color: '#38bdf8', fontWeight: 800, padding: '0 8px', fontSize: '0.9rem' }}
+                    >
+                      ⓘ
+                    </button>
+                  </div>
+
+                  <div className="toolbar-satellite-group" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      className={`btn-small ${satelliteMode === 'landsat8' ? 'active-mode' : ''}`}
+                      onClick={() => { setSatelliteMode('landsat8'); setSelectedBandIds([]); setResult(null); }}
+                      style={satelliteMode === 'landsat8' ? { background: '#0284c7', color: '#fff', fontWeight: 800, borderTopRightRadius: 0, borderBottomRightRadius: 0 } : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8', borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                    >
+                      🇺🇸 Landsat-8 OLI/TIRS Mode
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-small sat-spec-info-btn"
+                      onClick={() => setActiveSatelliteModal('landsat8')}
+                      title="Learn about Landsat-8 Satellite Mission Specs (ⓘ)"
+                      style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeft: '1px solid rgba(255,255,255,0.2)', background: 'rgba(245,158,11,0.2)', color: '#fbbf24', fontWeight: 800, padding: '0 8px', fontSize: '0.9rem' }}
+                    >
+                      ⓘ
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="workbench-card-grid" aria-label="Spectral bands">
@@ -245,7 +263,6 @@ export default function App() {
                         {TRAIT_FAMILIES[result.recipe.suit].shortLabel.toUpperCase()}
                       </span>
                       {result.recipe.satelliteTag && <span className="sensor-chip" style={{ background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8' }}>{result.recipe.satelliteTag}</span>}
-                      {result.isNew && <span className="new-discovery-chip">New Index</span>}
                     </div>
                     <div className="index-card-name">{result.recipe.name}</div>
                     <div className="index-formula-badge">
