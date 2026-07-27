@@ -36,3 +36,8 @@ timestamp: "2026-07-26T18:13:55-05:00"
 - 2026-07-26 17:50 - Transformed "Build an Index" into an Interactive Real-Time Physics Sandbox.
 - 2026-07-26 17:53 - Implemented 3D Flippable Scientific Band Cards with ⓘ Info Icons and APES Physics Specs.
 - 2026-07-26 18:13 - Unlocked All 7 Satellite Indices by Default & Created Interactive Index Reference Library.
+
+## Checkpoint Log
+
+- 2026-07-26 22:49 — commit: feat: real-band index mechanic, Formula Lab, and UI/UX pass | .gitignore,README.md,index.html,knowledge/DECISIONS.md,knowledge/ERRORS.md
+- 2026-07-26 23:10 — Pre-release fix round: added React ErrorBoundary (src/ErrorBoundary.tsx, wired in main.tsx), fixed SpectralCurveInspector B04/B05 x-axis label overlap (stagger onto two rows), fixed Field Guide slider band-name label clipping into the track (.field-guide-slider-row / .slider-band-name), removed 8 dead legacy PNGs (~11MB) from public/ with zero-reference verification via grep, updated README to mention the Related Formulas tab. 41/41 unit tests pass, clean production build.

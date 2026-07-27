@@ -10,7 +10,7 @@ It is a standalone educational project in the Globe & Atlas / Limn-Atlas ecosyst
 
 - Real 2-band and 3-band index recipes, including NDVI, NDWI, NDBI, NBR, EVI, NDRE, and MNDWI.
 - Sensor-aware band cards for Sentinel-2 and Landsat-8.
-- A Field Guide covering the missions, sensors, and environmental applications.
+- A Field Guide covering the missions, sensors, and environmental applications, plus a Related Formulas tab connecting each craftable index to real-world variants that share its band pair (e.g. NDVI → SAVI, EVI → ARVI).
 - Simulated true-color and false-color index views.
 - A spectral reflectance curve inspector with active-band markers.
 - A satellite-pass landing screen using the generated artwork in `public/satellite-pass.png`.

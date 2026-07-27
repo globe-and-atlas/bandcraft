@@ -145,7 +145,7 @@ export default function SpectralCurveInspector({ recipe }: SpectralCurveInspecto
   const PAD_L = 45;
   const PAD_R = 25;
   const PAD_T = 20;
-  const PAD_B = 30;
+  const PAD_B = 40;
   const PLOT_W = SVG_W - PAD_L - PAD_R;
   const PLOT_H = SVG_H - PAD_T - PAD_B;
 
@@ -161,6 +161,22 @@ export default function SpectralCurveInspector({ recipe }: SpectralCurveInspecto
 
   // Active optical bands in this recipe
   const activeBandIds = recipe.bands.filter(bId => bId !== 'thermal');
+
+  // Visible-light bands (Blue/Green/Red/RedEdge) sit within ~300nm of each
+  // other while NIR/SWIR1/SWIR2 spread across the next 1400nm — real physics,
+  // but it means their x-axis labels land close enough to overlap into
+  // unreadable text at this chart width. Stagger any label whose center is
+  // within LABEL_MIN_GAP of the previous one onto a second row instead of
+  // shrinking or hiding them.
+  const LABEL_MIN_GAP = 24;
+  const sortedOpticalBands = BANDS.filter(b => b.id !== 'thermal').slice().sort((a, b) => BAND_WAVELENGTHS[a.id] - BAND_WAVELENGTHS[b.id]);
+  const labelRowById: Record<string, number> = {};
+  let lastLabelX = -Infinity;
+  for (const b of sortedOpticalBands) {
+    const x = wlToX(BAND_WAVELENGTHS[b.id]);
+    labelRowById[b.id] = x - lastLabelX < LABEL_MIN_GAP ? 1 : 0;
+    lastLabelX = x;
+  }
 
   return (
     <div className="spectral-curve-inspector-card">
@@ -253,10 +269,12 @@ export default function SpectralCurveInspector({ recipe }: SpectralCurveInspecto
                   <circle cx={x} cy={y} r="10" fill={b.color} opacity="0.25" className="pulse-glow" />
                 )}
 
-                {/* X Axis Wavelength Band Label */}
+                {/* X Axis Wavelength Band Label — staggered onto a second row
+                    when it lands too close to its horizontal neighbor to fit
+                    (Blue/Green/Red/RedEdge cluster within ~300nm of each other). */}
                 <text
                   x={x}
-                  y={SVG_H - 10}
+                  y={labelRowById[b.id] === 1 ? SVG_H - 8 : SVG_H - 20}
                   fill={isActive ? b.color : '#94a3b8'}
                   fontSize={isActive ? '10' : '8'}
                   fontWeight={isActive ? '800' : '500'}
