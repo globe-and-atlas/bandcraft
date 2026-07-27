@@ -15,6 +15,7 @@ import FieldGuideModal from './FieldGuide';
 import SplitSatelliteViewer from './SplitSatelliteViewer';
 import FlippableBandCard from './FlippableBandCard';
 import FormulaLab from './FormulaLab';
+import ModalShell from './ModalShell';
 import SatelliteModal, { type SatelliteModalId } from './SatelliteModal';
 
 type CombineResult =
@@ -159,10 +160,13 @@ export default function App() {
               </button>
               <button
                 type="button"
-                className={workspaceMode === 'formula-lab' ? 'active' : ''}
+                className={`formula-lab-switch ${workspaceMode === 'formula-lab' ? 'active' : ''}`}
                 onClick={() => setWorkspaceMode('formula-lab')}
+                aria-label="Open optional Formula Lab"
+                title="Optional advanced sandbox for testing formula hypotheses"
               >
-                Formula Lab
+                <span>Formula Lab</span>
+                <small>optional</small>
               </button>
             </div>
             <button className="btn-small" type="button" onClick={() => setIsFieldGuideOpen(true)}>
@@ -558,8 +562,7 @@ export default function App() {
       </div>
 
       {indexInfoModal && (
-        <div className="modal-backdrop" onClick={() => setIndexInfoModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 9999, padding: '1rem' }}>
-          <div className="modal-card" onClick={e => e.stopPropagation()} style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: '12px', width: '100%', maxWidth: '540px', padding: '1.5rem', color: '#f8fafc', boxShadow: '0 20px 40px rgba(0,0,0,0.6)', position: 'relative' }}>
+        <ModalShell onClose={() => setIndexInfoModal(null)} labelledBy="index-info-title" className="modal-card">
             <button
               type="button"
               className="btn-close"
@@ -586,7 +589,7 @@ export default function App() {
               )}
             </div>
 
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#38bdf8', margin: '0 0 12px 0', lineHeight: 1.3 }}>
+            <h3 id="index-info-title" style={{ fontSize: '1.15rem', fontWeight: 800, color: '#38bdf8', margin: '0 0 12px 0', lineHeight: 1.3 }}>
               {indexInfoModal.name}
             </h3>
 
@@ -639,8 +642,7 @@ export default function App() {
                 ⚡ Evaluate in Workbench
               </button>
             </div>
-          </div>
-        </div>
+        </ModalShell>
       )}
     </React.Fragment>
   );

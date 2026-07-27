@@ -1,4 +1,6 @@
 
+import { useModalA11y } from './useModalA11y';
+
 export type SatelliteModalId = 'sentinel2' | 'landsat8';
 
 interface SatelliteModalProps {
@@ -7,15 +9,18 @@ interface SatelliteModalProps {
 }
 
 export default function SatelliteModal({ satelliteId, onClose }: SatelliteModalProps) {
+  const modalRef = useModalA11y<HTMLDivElement>(onClose);
   const isSentinel = satelliteId === 'sentinel2';
 
   return (
     <div className="catalogue-modal-overlay" onClick={onClose}>
       <div
+        ref={modalRef}
         data-modal-root="true"
         role="dialog"
         aria-modal="true"
         aria-labelledby="satellite-modal-title"
+        tabIndex={-1}
         className="catalogue-modal satellite-spec-modal"
         onClick={e => e.stopPropagation()}
       >

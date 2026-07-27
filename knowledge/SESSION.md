@@ -53,3 +53,10 @@ timestamp: "2026-07-27T08:59:46-05:00"
 - 2026-07-27 07:29 - Updated all title screen copy to 25 indices and upgraded SimulatedIndexOverlay to support all 25 indices.
 - 2026-07-27 08:59 - Overhauled Formula Lab into an intuitive Custom Index Sandbox & Stress-Test Challenge with presets and visual bar chart.
 - 2026-07-27 08:05 — UI/UX design pass: removed inherited occult artwork (hero.png behind .center-shell, card_bg.png behind modals) + dead .relic-item rule; rebuilt the computation empty state with 3 clickable starter recipes; added aria-live to the main result region; fixed index-library band-count tag wrapping then the over-truncation it caused (measured: 113px row, tag trimmed 61px→50px so 5-letter acronyms fit whole); shortened the clipped search placeholder. Verified at 1440/1024 with screenshots + DOM measurement; typecheck clean, 41/41 tests, clean build.
+
+## Checkpoint Log
+
+- 2026-07-27 09:46 — commit: feat: UI/UX pass — drop inherited occult artwork, rebuild the empty state | knowledge/DECISIONS.md,knowledge/SESSION.md,public/card_bg.png,public/hero.png,src/App.tsx
+- 2026-07-27 09:48 — commit: merge: reconcile SatelliteModal removal with its now-committed implementation
+- 2026-07-27 09:49 — commit: merge: reconcile SatelliteModal removal with its now-committed implementation
+- 2026-07-27 10:45 — UI/UX pass 3: added ModalShell (shared backdrop + dialog wrapper applying useModalA11y); wired SatelliteModal (+ missing tabIndex={-1}) and the index-info modal — the latter had no role="dialog" at all; lifted the modal backdrop/card inline styles into CSS; fixed Formula Lab four-band formula truncation (now wraps) and .back-band-name 105px cap clipping "Near-Infrared (NIR)". Verified in browser: all 3 modals close on Escape, focus lands on dialog and returns to trigger, zero truncated elements. Typecheck clean, 41/41 tests, clean build. Deliberately left the 156–256px of empty space below content — it is content-driven and stretching panels to fill would be worse.

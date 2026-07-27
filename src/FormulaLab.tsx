@@ -79,6 +79,12 @@ function classLabel(classId: string): string {
   return classId === 'soil' ? 'Bare Soil' : classId.charAt(0).toUpperCase() + classId.slice(1);
 }
 
+function scoreTone(score: number): 'low' | 'mixed' | 'strong' {
+  if (score >= 75) return 'strong';
+  if (score >= 50) return 'mixed';
+  return 'low';
+}
+
 export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
   const [targetId, setTargetId] = useState<LabTargetId>('vegetation');
   const [templateId, setTemplateId] = useState<FormulaTemplateId>('normalized-difference');
@@ -146,9 +152,20 @@ export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
             <span>THE POINT</span>
             <strong>Can this contrast answer one narrow question without confusing the target with something else?</strong>
           </div>
+          <div className="lab-intent-grid" aria-label="Formula Lab scope">
+            <div>
+              <span>USE THIS LAB TO</span>
+              <strong>Compare a known formula or one-band change.</strong>
+            </div>
+            <div>
+              <span>NOT FOR</span>
+              <strong>Discovering or validating a new detector.</strong>
+            </div>
+          </div>
         </div>
         <div className="lab-preset-bar" role="group" aria-label="Quick preset recipes">
-          <span className="preset-bar-title">Start from a known answer</span>
+          <span className="preset-bar-title">Start from a known baseline</span>
+          <small className="preset-bar-help">Pick one, then change one band at a time.</small>
           <div className="preset-button-row">
             {CANONICAL_PRESETS.map(preset => (
               <button
@@ -168,7 +185,11 @@ export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
       {/* Step 1: Target Selection */}
       <div className="lab-step-panel">
         <div className="lab-step-marker">
-          <span>01</span> Name the surface you want to separate
+          <span>01</span>
+          <div className="lab-step-copy">
+            <strong>Choose the target</strong>
+            <small>What surface are you trying to separate?</small>
+          </div>
         </div>
         <div className="lab-target-grid" role="group" aria-label="Environmental target">
           {LAB_TARGETS.map(item => (
@@ -198,7 +219,11 @@ export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
       {/* Step 2: Formula Building & Band Selection */}
       <div className="lab-step-panel">
         <div className="lab-step-marker">
-          <span>02</span> Choose a contrast to test
+          <span>02</span>
+          <div className="lab-step-copy">
+            <strong>Choose the contrast</strong>
+            <small>Keep the target fixed; change one band at a time.</small>
+          </div>
         </div>
         <div className="lab-template-grid" role="group" aria-label="Formula family">
           {FORMULA_TEMPLATES.map(item => (
@@ -246,11 +271,11 @@ export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
         {/* Live Mathematical Formula Readout Banner */}
         <div className="lab-formula-readout">
           <div>
-            <span>CANDIDATE FORMULA</span>
+            <span>READY TO COMPARE · 15 TEACHING SURFACES</span>
             <code>{formula}</code>
           </div>
-          <button type="button" className="lab-run-button" onClick={runChallenge} aria-label="Run the confuser check across 15 reference surfaces">
-            Run the confuser check →
+          <button type="button" className="lab-run-button" onClick={runChallenge} aria-label="Compare the target with 15 teaching surfaces">
+            Compare target vs confusers →
           </button>
         </div>
       </div>
@@ -261,7 +286,11 @@ export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
           <div className="lab-result-heading">
             <div>
               <div className="lab-step-marker">
-                <span>03</span> Read the result
+                <span>03</span>
+                <div className="lab-step-copy">
+                  <strong>Decide what to keep</strong>
+                  <small>Compare the candidate with its known baseline.</small>
+                </div>
               </div>
               <h3 style={{ color: result.contrastScore >= 75 ? '#4ade80' : result.contrastScore >= 50 ? '#fbbf24' : '#f87171' }}>
                 {result.contrastScore >= 75 ? '🏆 ' : result.contrastScore >= 50 ? '⚠️ ' : '❌ '}
@@ -275,34 +304,28 @@ export default function FormulaLab({ satelliteMode }: FormulaLabProps) {
           </div>
 
           {/* Scores Overview Grid */}
-          <div className="lab-score-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', margin: '12px 0' }}>
-            <div className="lab-score-card" style={{ background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '8px', padding: '10px' }}>
-              <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Target separation</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#38bdf8' }}>{result.contrastScore}%</div>
-              <div style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '4px' }}>
-                Mean {target.name.toLowerCase()} response is {result.direction} than the other reference classes.
-              </div>
+          <div className="lab-score-grid">
+            <div className={`lab-score-card ${scoreTone(result.contrastScore)}`}>
+              <div className="lab-score-heading"><span>Separation gap</span><strong>{result.contrastScore}%</strong></div>
+              <div className="lab-score-track" role="img" aria-label={`Separation gap ${result.contrastScore} percent`}><span style={{ width: `${result.contrastScore}%` }} /></div>
+              <p>How far the target’s average response sits from the other reference classes.</p>
             </div>
 
-            <div className="lab-score-card" style={{ background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '8px', padding: '10px' }}>
-              <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Pairwise order</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#c084fc' }}>{result.robustnessScore}%</div>
-              <div style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '4px' }}>
-                How often the target ranks above or below 12 confuser signatures.
-              </div>
+            <div className={`lab-score-card ${scoreTone(result.robustnessScore)}`}>
+              <div className="lab-score-heading"><span>Consistency</span><strong>{result.robustnessScore}%</strong></div>
+              <div className="lab-score-track" role="img" aria-label={`Consistency ${result.robustnessScore} percent`}><span style={{ width: `${result.robustnessScore}%` }} /></div>
+              <p>How often the target keeps the expected ordering against 12 confuser signatures.</p>
             </div>
 
-            <div className="lab-score-card" style={{ background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px', padding: '10px' }}>
-              <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Hypothesis fit</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#4ade80' }}>{result.interpretabilityScore}%</div>
-              <div style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '4px' }}>
-                Did you name a reason and keep the band roles distinct?
-              </div>
+            <div className={`lab-score-card ${scoreTone(result.interpretabilityScore)}`}>
+              <div className="lab-score-heading"><span>Setup quality</span><strong>{result.interpretabilityScore}%</strong></div>
+              <div className="lab-score-track" role="img" aria-label={`Setup quality ${result.interpretabilityScore} percent`}><span style={{ width: `${result.interpretabilityScore}%` }} /></div>
+              <p>Credits a written reason, distinct bands, and a compact formula.</p>
             </div>
           </div>
 
           <div className={`lab-result-takeaway ${result.challenge.passesExpectedOrder ? 'pass' : 'fail'}`}>
-            <span>DECISION SIGNAL</span>
+            <span>WHAT TO DO NEXT</span>
             <strong>
               {result.challenge.passesExpectedOrder
                 ? `Keep testing: ${target.name.toLowerCase()} stays ${result.direction} than its closest confuser in this reference set.`

@@ -59,3 +59,19 @@
 **Reason**: The panel occupied a large share of the work surface and said only "Select 2 or 3 spectral bands above". A student who does not yet know which bands pair up had no way in. Routing the starters through the real evaluate path (rather than setting the result directly) means the computation they see is identical to the one they would get by clicking the bands themselves.
 
 **How to apply**: Give the panel a `min-height` floor so the layout does not lurch when a result replaces the empty state.
+
+## 2026-07-27 — All modals route through one shell
+
+**Decision**: Added `src/ModalShell.tsx` (backdrop + dialog wrapper that applies `useModalA11y`) and wired the index-info modal through it. `SatelliteModal` got the hook plus the `tabIndex={-1}` it needs for focus to land on the dialog.
+
+**Reason**: The ARIA and the keyboard behaviour had drifted apart across three modals. `FieldGuide` had both. `SatelliteModal`, added later, had correct `role="dialog"`/`aria-modal`/`aria-labelledby` but no Escape, focus trap, focus restore, or scroll lock. The index-info modal was a bare `div` with inline styles — no dialog role at all, invisible to assistive tech as a dialog, and no way out via the keyboard. Building a reusable hook was not enough on its own; a new modal still shipped with half the behaviour.
+
+**How to apply**: New modals use `ModalShell` rather than composing a backdrop by hand. A dialog root needs `tabIndex={-1}` or `.focus()` silently does nothing on a div — verify focus actually lands on the dialog, don't assume the hook did it.
+
+## 2026-07-27 — Formula shapes wrap instead of truncating
+
+**Decision**: `.lab-template-button code` now wraps (`white-space: normal; overflow-wrap: anywhere`) instead of ellipsizing. Removed the hardcoded `max-width: 105px` on `.back-band-name` in favour of flex sizing.
+
+**Reason**: In the Formula Lab's 6-column layout the four-band shapes were cut to `(A + B − C − D) / (A + …`, and the formula is the only thing those cards exist to communicate. Similarly the flip-card back clipped "Near-Infrared (NIR)" against a 105px cap on cards roughly three times that wide.
+
+**How to apply**: Truncation is acceptable for labels and secondary metadata, not for the formula itself. Prefer flex sizing over fixed pixel caps — the cap was invisible until measured in the browser.
