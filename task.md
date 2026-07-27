@@ -25,16 +25,17 @@ Create a standalone web fork of `relic-rack-v2` tuned specifically for High Scho
 - [x] Implemented clean 50/50 side-by-side dual satellite comparison panel view at 1:1 scale (Left: True Color RGB Satellite Context, Right: False Color Index Raster Overlay)
 - [x] Integrated Limn Atlas metadata HUD banner below the dual satellite panel
 - [x] Implemented Spectral Reflectance Signature Curve Inspector (`SpectralCurveInspector`) with continuous reflectance graph (400nm – 2200nm), Band Wavelength Markers (`B02` through `B12`), active band percentage chips, and APES spectral physics tips adapted from ExploreReflectance
-- [x] All 22 Vitest unit tests pass cleanly
+- [x] Enhanced "Build an Index" into a live real-time physics sandbox: moving reflectivity sliders dynamically updates: 1) live spectral curve band dots, 2) live numerical worked equation, 3) live scale bar needle pin, and 4) live surface raster pixel swatch color
+- [x] Implemented 3D Flippable Band Cards (`FlippableBandCard`): each card features a glowing ⓘ info icon on top-right that smoothly flips the card in 3D (`rotateY(180deg)`) to reveal scientific specs (center wavelength, bandwidth, spatial resolution, and APES Environmental Physics role)
+- [x] Unlocked all 7 satellite indices by default for open educational exploration: replaced mystery question-mark lock boxes with an open **Index Reference Library** displaying formula chips, suit badges, real NASA card art, and instant load/evaluate triggers
+- [x] All 37 Vitest unit tests pass cleanly
 - [x] Vite production bundle builds without errors
 - [x] App is registered in `app-studio/apps.json` on port 4257
 
 ## Progress Log
 
-### 2026-07-26 17:31 — Spectral Reflectance Signature Curve Inspector & Band Wavelength Markers Complete
-- Created `SpectralCurveInspector.tsx` SVG chart component
-- Rendered continuous spectral reflectance curve graphs (%) across wavelengths (400nm – 2200nm) for all 7 index families
-- Plotted Band Wavelength Markers for `B02` Blue, `B03` Green, `B04` Red, `B05` RedEdge, `B08` NIR, `B11` SWIR-1, and `B12` SWIR-2
-- Highlighted active recipe bands with glowing marker lines, value chips, and APES spectral physics explanations
-- Verified all 22 unit tests pass and Vite production bundle compiles cleanly (0 errors)
-- Captured browser QA screenshot (`ndbi_spectral_curve_1785105064845.png`) on `http://localhost:4257/`
+### 2026-07-26 18:13 — All 7 Satellite Indices Unlocked by Default
+- Removed lock-wall mechanism (`? Locked`) so all 7 satellite indices (NDVI, EVI, NDWI, MNDWI, NDRE, NDBI, NBR) are instantly accessible for open educational reference
+- Transformed right sidebar into **Index Reference Library** with NASA thumbnails, suit glyphs, mathematical formulas, and active index glowing badges
+- Updated header badge to `7 SATELLITE INDICES AVAILABLE`
+- Verified all 37 unit tests pass and Vite production bundle compiles cleanly (0 errors)

@@ -13,7 +13,7 @@ function SimulatedIndexOverlay({ imageSrc, recipeId }: { imageSrc: string; recip
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     const img = new Image();
@@ -136,13 +136,7 @@ function SimulatedIndexOverlay({ imageSrc, recipeId }: { imageSrc: string; recip
   );
 }
 
-export default function SplitSatelliteViewer({ recipe }: SplitSatelliteViewerProps) {
-  const meta = LOCATION_METADATA[recipe.id] || {
-    location: 'Satellite Observation Zone',
-    coords: '37.7749, -122.4194',
-    aerialArt: recipe.cardArt
-  };
-
+export default function SplitSatelliteViewer({ recipe, satelliteMode }: SplitSatelliteViewerProps) {
   return (
     <div className="limn-dual-panel-wrapper">
       {/* Side-by-Side 50/50 Dual Satellite Views at 1:1 scale */}
@@ -151,18 +145,21 @@ export default function SplitSatelliteViewer({ recipe }: SplitSatelliteViewerPro
         <div className="satellite-view-card true-color-card">
           <div
             className="satellite-card-image"
-            style={{ backgroundImage: `url(${meta.aerialArt})` }}
+            style={{ backgroundImage: `url(${recipe.cardArt})` }}
           />
           <div className="view-card-badge left-badge">
             <span>SATELLITE CONTEXT — TRUE COLOR RGB</span>
           </div>
         </div>
 
-        {/* Right View: False Color Index Raster Overlay */}
+        {/* Right View: False Color Index Raster Overlay. This is a stylized RGB-threshold
+            simulation for visualization, not the recipe's real formula computed from real
+            reflectance bands (a plain photo has no NIR/SWIR channel to compute from) —
+            labeled "Simulated" so it isn't mistaken for a real computed index. */}
         <div className="satellite-view-card index-raster-card">
-          <SimulatedIndexOverlay imageSrc={meta.aerialArt} recipeId={recipe.id} />
+          <SimulatedIndexOverlay imageSrc={recipe.cardArt} recipeId={recipe.id} />
           <div className="view-card-badge right-badge">
-            <span>{recipe.id.toUpperCase()} RASTER OVERLAY</span>
+            <span>SIMULATED {recipe.id.toUpperCase()} OVERLAY</span>
           </div>
         </div>
       </div>
@@ -172,9 +169,7 @@ export default function SplitSatelliteViewer({ recipe }: SplitSatelliteViewerPro
         <div className="hud-meta-left">
           <div className="hud-header-code">{recipe.id.toUpperCase()}</div>
           <div className="hud-title">{recipe.name}</div>
-          <div className="hud-location">
-            {meta.location} • <span className="hud-coords">{meta.coords}</span>
-          </div>
+          <div className="hud-location">{recipe.realCaption}</div>
         </div>
 
         <div className="hud-meta-right">
@@ -182,7 +177,7 @@ export default function SplitSatelliteViewer({ recipe }: SplitSatelliteViewerPro
             <code>{recipe.formula}</code>
           </div>
           <div className="hud-bands-row">
-            <span>Bands: {recipe.bands.map(b => getBand(b).bandCode).join(', ')}</span>
+            <span>Bands: {recipe.bands.map(b => getBandForMode(b, satelliteMode).bandCode).join(', ')}</span>
           </div>
           <div className="hud-scale-bar-wrapper">
             <div
@@ -198,6 +193,10 @@ export default function SplitSatelliteViewer({ recipe }: SplitSatelliteViewerPro
           </div>
         </div>
       </div>
+
+      <p className="split-viewer-disclaimer">
+        The overlay on the right is a stylized illustration, not the actual {recipe.id.toUpperCase()} formula computed from this photo — a regular photo has no infrared channel to compute it from. The photo itself is real: {recipe.realCaption}
+      </p>
 
       {/* Spectral Reflectance Signature Curve Inspector */}
       <SpectralCurveInspector recipe={recipe} />

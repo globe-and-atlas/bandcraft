@@ -15,17 +15,130 @@ export interface Band {
   sensorTag: string;
   color: string;
   satellites: Array<'sentinel2' | 'landsat8'>;
+  bandwidth: string;
+  physicsRole: string;
+  primaryUse: string;
 }
 
 export const BANDS: Band[] = [
-  { id: 'blue', bandCode: 'B02', sentinelCode: 'B02', landsatCode: 'B02', name: 'Blue (VIS)', wavelength: '490 nm', resolution: '10m', sensorTag: 'Sentinel-2 / Landsat-8', color: '#3b82f6', satellites: ['sentinel2', 'landsat8'] },
-  { id: 'green', bandCode: 'B03', sentinelCode: 'B03', landsatCode: 'B03', name: 'Green (VIS)', wavelength: '560 nm', resolution: '10m', sensorTag: 'Sentinel-2 / Landsat-8', color: '#10b981', satellites: ['sentinel2', 'landsat8'] },
-  { id: 'red', bandCode: 'B04', sentinelCode: 'B04', landsatCode: 'B04', name: 'Red (VIS)', wavelength: '665 nm', resolution: '10m', sensorTag: 'Sentinel-2 / Landsat-8', color: '#ef4444', satellites: ['sentinel2', 'landsat8'] },
-  { id: 'rededge', bandCode: 'B05', sentinelCode: 'B05', name: 'Red Edge (VRE)', wavelength: '705 nm', resolution: '20m', sensorTag: 'Sentinel-2 MSI Only', color: '#f43f5e', satellites: ['sentinel2'] },
-  { id: 'nir', bandCode: 'B08', sentinelCode: 'B08', landsatCode: 'B05', name: 'Near-Infrared (NIR)', wavelength: '842 nm', resolution: '10m', sensorTag: 'Sentinel-2 / Landsat-8', color: '#a855f7', satellites: ['sentinel2', 'landsat8'] },
-  { id: 'swir1', bandCode: 'B11', sentinelCode: 'B11', landsatCode: 'B06', name: 'SWIR-1', wavelength: '1610 nm', resolution: '20m', sensorTag: 'Sentinel-2 / Landsat-8', color: '#f59e0b', satellites: ['sentinel2', 'landsat8'] },
-  { id: 'swir2', bandCode: 'B12', sentinelCode: 'B12', landsatCode: 'B07', name: 'SWIR-2', wavelength: '2190 nm', resolution: '20m', sensorTag: 'Sentinel-2 / Landsat-8', color: '#ea580c', satellites: ['sentinel2', 'landsat8'] },
-  { id: 'thermal', bandCode: 'T10', landsatCode: 'T10', name: 'Thermal IR (TIRS)', wavelength: '10.9 µm', resolution: '100m', sensorTag: 'Landsat-8 TIRS Only', color: '#ec4899', satellites: ['landsat8'] }
+  {
+    id: 'blue',
+    bandCode: 'B02',
+    sentinelCode: 'B02',
+    landsatCode: 'B02',
+    name: 'Blue (VIS)',
+    wavelength: '490 nm',
+    resolution: '10m',
+    sensorTag: 'Sentinel-2 / Landsat-8',
+    color: '#3b82f6',
+    satellites: ['sentinel2', 'landsat8'],
+    bandwidth: '458 – 523 nm',
+    physicsRole: 'Absorbed strongly by leaf chlorophyll-a for photosynthesis. Scatters in clear atmosphere and coastal water.',
+    primaryUse: 'Atmospheric aerosol correction, EVI formula, coastal water clarity, soil vs vegetation discrimination.'
+  },
+  {
+    id: 'green',
+    bandCode: 'B03',
+    sentinelCode: 'B03',
+    landsatCode: 'B03',
+    name: 'Green (VIS)',
+    wavelength: '560 nm',
+    resolution: '10m',
+    sensorTag: 'Sentinel-2 / Landsat-8',
+    color: '#10b981',
+    satellites: ['sentinel2', 'landsat8'],
+    bandwidth: '543 – 578 nm',
+    physicsRole: 'Reflected by plant leaf chlorophyll pigments, giving healthy vegetation its green visual color.',
+    primaryUse: 'Peak visual vegetation reflection, NDWI water body detection, shallow aquatic mapping.'
+  },
+  {
+    id: 'red',
+    bandCode: 'B04',
+    sentinelCode: 'B04',
+    landsatCode: 'B04',
+    name: 'Red (VIS)',
+    wavelength: '665 nm',
+    resolution: '10m',
+    sensorTag: 'Sentinel-2 / Landsat-8',
+    color: '#ef4444',
+    satellites: ['sentinel2', 'landsat8'],
+    bandwidth: '650 – 680 nm',
+    physicsRole: 'Absorbed heavily by chlorophyll-a and b. Low red reflectance indicates healthy active plant growth.',
+    primaryUse: 'NDVI vegetation denominator, crop health assessment, soil cover differentiation.'
+  },
+  {
+    id: 'rededge',
+    bandCode: 'B05',
+    sentinelCode: 'B05',
+    name: 'Red Edge (VRE)',
+    wavelength: '705 nm',
+    resolution: '20m',
+    sensorTag: 'Sentinel-2 MSI Only',
+    color: '#f43f5e',
+    satellites: ['sentinel2'],
+    bandwidth: '698 – 713 nm',
+    physicsRole: 'Sentinel-2 exclusive! Lies directly on the steep spectral boundary between Red absorption and NIR reflection.',
+    primaryUse: 'Early detection of crop nitrogen stress, leaf chlorophyll variations, forest canopy decline.'
+  },
+  {
+    id: 'nir',
+    bandCode: 'B08',
+    sentinelCode: 'B08',
+    landsatCode: 'B05',
+    name: 'Near-Infrared (NIR)',
+    wavelength: '842 nm',
+    resolution: '10m',
+    sensorTag: 'Sentinel-2 / Landsat-8',
+    color: '#a855f7',
+    satellites: ['sentinel2', 'landsat8'],
+    bandwidth: '785 – 899 nm',
+    physicsRole: 'Reflected strongly by internal leaf mesophyll structure; absorbed almost 100% by liquid surface water.',
+    primaryUse: 'Vegetation canopy density (NDVI/EVI), open water body extraction (NDWI), biomass estimation.'
+  },
+  {
+    id: 'swir1',
+    bandCode: 'B11',
+    sentinelCode: 'B11',
+    landsatCode: 'B06',
+    name: 'SWIR-1',
+    wavelength: '1610 nm',
+    resolution: '20m',
+    sensorTag: 'Sentinel-2 / Landsat-8',
+    color: '#f59e0b',
+    satellites: ['sentinel2', 'landsat8'],
+    bandwidth: '1565 – 1655 nm',
+    physicsRole: 'Sensitive to plant canopy moisture content and rooftop/concrete reflectivity. Penetrates atmospheric haze.',
+    primaryUse: 'Urban built-up index (NDBI), leaf moisture stress, MNDWI urban water extraction, cloud vs snow.'
+  },
+  {
+    id: 'swir2',
+    bandCode: 'B12',
+    sentinelCode: 'B12',
+    landsatCode: 'B07',
+    name: 'SWIR-2',
+    wavelength: '2190 nm',
+    resolution: '20m',
+    sensorTag: 'Sentinel-2 / Landsat-8',
+    color: '#ea580c',
+    satellites: ['sentinel2', 'landsat8'],
+    bandwidth: '2100 – 2280 nm',
+    physicsRole: 'Sensitive to soil mineral composition and burned, charred ground ash.',
+    primaryUse: 'Normalized Burn Ratio (NBR), wildfire burn severity mapping, mineral & rock geological mapping.'
+  },
+  {
+    id: 'thermal',
+    bandCode: 'T10',
+    landsatCode: 'T10',
+    name: 'Thermal IR (TIRS)',
+    wavelength: '10.9 µm',
+    resolution: '100m',
+    sensorTag: 'Landsat-8 TIRS Only',
+    color: '#ec4899',
+    satellites: ['landsat8'],
+    bandwidth: '10.60 – 11.19 µm',
+    physicsRole: 'Landsat-8 TIRS exclusive! Measures longwave thermal infrared energy emitted directly from Earth’s surface.',
+    primaryUse: 'Land surface temperature (LST), urban heat island intensity, drought monitoring, volcanic hotspots.'
+  }
 ];
 
 export function getBandsForMode(mode: SatelliteMode): Band[] {
@@ -227,6 +340,66 @@ export const INDEX_RECIPES: IndexRecipe[] = [
       { min: 0.4, max: 1, label: 'Dense, healthy, unburned vegetation', color: '#15803d' }
     ],
     ...normalizedDifferenceRecipe()
+  }
+];
+
+/** Real, standard indices that are NOT craftable band-combinations in this app —
+ * each one uses the exact same bands as an existing IndexRecipe above, just a
+ * different formula on top. The craft mechanic resolves "which index?" purely
+ * from which bands you selected, so a second formula on an already-claimed band
+ * pair has nowhere to go without colliding. Reference-only is the honest way to
+ * teach these: the same two numbers can answer a different question depending
+ * on the formula, which is itself a real lesson worth surfacing explicitly. */
+export interface RelatedFormula {
+  id: string;
+  name: string;
+  formula: string;
+  bands: BandId[];
+  meaning: string;
+  /** id of the INDEX_RECIPES entry this shares its exact band set with. */
+  sharesBandsWith: string;
+}
+
+export const RELATED_FORMULAS: RelatedFormula[] = [
+  {
+    id: 'savi',
+    name: 'SAVI — Soil-Adjusted Vegetation Index',
+    formula: '((NIR − Red) / (NIR + Red + L)) × (1 + L), where L = 0.5',
+    bands: ['nir', 'red'],
+    meaning: 'Corrects NDVI for soil brightness showing through sparse vegetation. The L term (0.5 is the standard value for moderate cover) dampens the influence of bare soil reflectance, making SAVI more reliable than NDVI over deserts, early-season crops, and dryland ecosystems.',
+    sharesBandsWith: 'ndvi'
+  },
+  {
+    id: 'arvi',
+    name: 'ARVI — Atmospherically Resistant Vegetation Index',
+    formula: '(NIR − (2×Red − Blue)) / (NIR + (2×Red − Blue))',
+    bands: ['nir', 'red', 'blue'],
+    meaning: 'Uses the Blue band to correct for atmospheric scattering — haze, smoke, and aerosols — that can throw off a plain NDVI reading. Useful over regions with persistent atmospheric interference, like farmland downwind of wildfire smoke.',
+    sharesBandsWith: 'evi'
+  },
+  {
+    id: 'gndvi',
+    name: 'GNDVI — Green Normalized Difference Vegetation Index',
+    formula: '(NIR − Green) / (NIR + Green)',
+    bands: ['nir', 'green'],
+    meaning: 'Swaps Red for Green, making it more sensitive to chlorophyll concentration and nitrogen content than standard NDVI. Used to catch crop nutrient stress before it becomes visible to NDVI or the naked eye.',
+    sharesBandsWith: 'ndwi'
+  },
+  {
+    id: 'ndmi',
+    name: 'NDMI — Normalized Difference Moisture Index',
+    formula: '(NIR − SWIR1) / (NIR + SWIR1)',
+    bands: ['nir', 'swir1'],
+    meaning: 'Tracks vegetation water content and canopy moisture stress, used for drought monitoring and irrigation management. The same two bands as NDBI, read in the opposite direction: healthy, hydrated canopy has high NIR and low SWIR1 — the mirror image of a dry built surface.',
+    sharesBandsWith: 'ndbi'
+  },
+  {
+    id: 'ndsi',
+    name: 'NDSI — Normalized Difference Snow Index',
+    formula: '(Green − SWIR1) / (Green + SWIR1)',
+    bands: ['green', 'swir1'],
+    meaning: 'Distinguishes snow and ice from clouds and other bright surfaces — snow reflects strongly in visible light but absorbs SWIR, while clouds reflect both. Used to track snowpack extent and seasonal melt timing in climate studies.',
+    sharesBandsWith: 'mndwi'
   }
 ];
 

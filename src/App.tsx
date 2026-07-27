@@ -3,6 +3,7 @@ import {
   BANDS,
   INDEX_RECIPES,
   getBand,
+  getBandForMode,
   getBandsForMode,
   findRecipeForBands,
   explainMismatchForBands,
@@ -13,6 +14,8 @@ import {
 import { TRAIT_FAMILIES } from './data/suits';
 import FieldGuideModal from './FieldGuide';
 import SplitSatelliteViewer from './SplitSatelliteViewer';
+import FlippableBandCard from './FlippableBandCard';
+import FormulaLab from './FormulaLab';
 
 const SAVE_KEY = 'bandcraft-discovered-indices-v1';
 
@@ -20,15 +23,18 @@ type CombineResult =
   | { kind: 'match'; recipe: IndexRecipe; isNew: boolean }
   | { kind: 'mismatch'; selected: BandId[]; reason: string };
 
-function EquationBandCard({ bandId }: { bandId: BandId }) {
-  const band = getBand(bandId);
+// Reads the band via the active satellite mode so the code shown here (e.g. NIR's
+// B05 in Landsat-8 mode) matches what the selection grid just showed — getBand()
+// alone always returns the Sentinel-numbered default regardless of mode.
+function EquationBandCard({ bandId, satelliteMode }: { bandId: BandId; satelliteMode: SatelliteMode }) {
+  const band = getBandForMode(bandId, satelliteMode);
   return (
     <div className="equation-card" style={{ borderColor: band.color }}>
       <div className={`relic-card-art band-swatch-${bandId}`} style={{ height: '90px', display: 'grid', placeItems: 'center', position: 'relative' }}>
         <div className="spectral-wave-overlay" />
         <span style={{ fontSize: '1.5rem', fontWeight: 900, fontFamily: 'var(--font-mono, monospace)', color: '#ffffff', zIndex: 1 }}>{band.bandCode}</span>
       </div>
-      <div className="card-bottom-plate" style={{ fontSize: '0.7rem' }}>
+      <div className="card-bottom-plate compact">
         <div style={{ color: band.color, fontSize: '0.6rem', fontWeight: 800, fontFamily: 'var(--font-mono, monospace)' }}>{band.sensorTag}</div>
         <div>{band.name}</div>
       </div>
@@ -37,16 +43,8 @@ function EquationBandCard({ bandId }: { bandId: BandId }) {
 }
 
 function loadDiscoveredIds(): Set<string> {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return new Set();
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return new Set();
-    const validIds = new Set(INDEX_RECIPES.map(recipe => recipe.id));
-    return new Set(parsed.filter((id): id is string => typeof id === 'string' && validIds.has(id)));
-  } catch {
-    return new Set();
-  }
+  // All 7 indices unlocked by default for open educational exploration
+  return new Set(INDEX_RECIPES.map(r => r.id));
 }
 
 export default function App() {
@@ -54,16 +52,11 @@ export default function App() {
   const [discoveredIds, setDiscoveredIds] = useState<Set<string>>(() => loadDiscoveredIds());
   const [satelliteMode, setSatelliteMode] = useState<SatelliteMode>('all');
   const [selectedBandIds, setSelectedBandIds] = useState<BandId[]>([]);
-  const [draggedBandId, setDraggedBandId] = useState<BandId | null>(null);
   const [result, setResult] = useState<CombineResult | null>(null);
   const [isFieldGuideOpen, setIsFieldGuideOpen] = useState(false);
+  const [workspaceMode, setWorkspaceMode] = useState<'guided' | 'formula-lab'>('guided');
 
   const activeBands = getBandsForMode(satelliteMode);
-
-  const persistDiscovered = (next: Set<string>) => {
-    setDiscoveredIds(next);
-    localStorage.setItem(SAVE_KEY, JSON.stringify(Array.from(next)));
-  };
 
   const evaluateCombination = (bands: BandId[]) => {
     if (bands.length < 2) {
@@ -76,13 +69,7 @@ export default function App() {
       return;
     }
 
-    const isNew = !discoveredIds.has(recipe.id);
-    setResult({ kind: 'match', recipe, isNew });
-    if (isNew) {
-      const next = new Set(discoveredIds);
-      next.add(recipe.id);
-      persistDiscovered(next);
-    }
+    setResult({ kind: 'match', recipe, isNew: false });
   };
 
   const handleBandClick = (bandId: BandId) => {
@@ -101,32 +88,40 @@ export default function App() {
   };
 
   const resetProgress = () => {
-    persistDiscovered(new Set());
     setResult(null);
     setSelectedBandIds([]);
+  };
+
+  // Re-selecting a discovered index doesn't need to re-derive anything —
+  // we already know the recipe. Force "all sensors" mode first so every
+  // recipe's bands are guaranteed present in the grid (e.g. NDRE's Red Edge
+  // band doesn't exist in Landsat-8 mode).
+  const selectDiscoveredIndex = (recipe: IndexRecipe) => {
+    setSatelliteMode('all');
+    setSelectedBandIds(recipe.bands);
+    setResult({ kind: 'match', recipe, isNew: false });
   };
 
   if (!hasEnteredGame) {
     return (
       <main className="relic-title-screen">
+        <div className="title-screen-art" aria-hidden="true" />
         <div className="title-screen-glow" aria-hidden="true" />
         <div className="title-screen-copy">
-          <span className="title-screen-overline">GLOBE & ATLAS | MULTISPECTRAL SENSING LAB</span>
-          <h1>BAND<br /><em>CRAFT</em></h1>
-          <p><strong>Multispectral Remote Sensing & Index Workbench.</strong> Compute 2-band and 3-band spectral indices directly from Sentinel-2 MSI and Landsat-8 TIRS satellite data. Compare band numbering, spatial resolutions, and atmospheric correction physics across satellites.</p>
+          <span className="title-screen-overline">A GLOBE & ATLAS GAME OF SPECTRAL BANDCRAFT</span>
+          <h1>LIMN<br /><em>SIGNAL</em></h1>
+          <p><strong>Multispectral Remote Sensing & Index Workbench.</strong> Explore seven established spectral indices (NDVI, EVI, NDWI, MNDWI, NDRE, NDBI, NBR) through sensor-aware band roles, documented formulas, and illustrative teaching scenes.</p>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '1rem 0' }}>
-            <span className="sensor-chip" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>SENTINEL-2A MSI (10m)</span>
-            <span className="sensor-chip" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)' }}>LANDSAT-8 TIRS (30m)</span>
-            <span className="sensor-chip" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.3)' }}>3-BAND MULTISPECTRAL MATH</span>
+            <span className="sensor-chip" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>SENTINEL-2 MSI · 10–20m</span>
+            <span className="sensor-chip" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)' }}>LANDSAT 8 OLI/TIRS · 30–100m</span>
+            <span className="sensor-chip" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.3)' }}>7 DOCUMENTED INDICES</span>
           </div>
           <div className="title-screen-actions">
             <button className="title-primary-action" type="button" onClick={() => setHasEnteredGame(true)}>
               Initialize Satellite Workbench →
             </button>
           </div>
-          <span className="title-screen-note">Calibrated spectral formulas. Real satellite remote sensing.</span>
         </div>
-        <div className="title-screen-art" aria-hidden="true" />
       </main>
     );
   }
@@ -135,15 +130,33 @@ export default function App() {
     <React.Fragment>
       {isFieldGuideOpen && <FieldGuideModal onClose={() => setIsFieldGuideOpen(false)} />}
 
-      <div className="app-screen-container">
-        <header className="header-bar">
-          <div>
-            <h1 style={{ letterSpacing: '0.05em' }}>GLOBE & ATLAS | BANDCRAFT SPECTRAL LAB</h1>
-            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '0.1rem' }}>Multispectral Remote Sensing Workstation</div>
+      <div className="game-layout">
+        <header className="game-header flex items-center justify-between">
+          <div className="header-brand-group flex items-center">
+            <div className="header-title">
+              <span className="header-kicker">GLOBE & ATLAS | LIMN SIGNAL · SPECTRAL BANDCRAFT</span>
+              <h1>Multispectral Remote Sensing Workstation</h1>
+            </div>
           </div>
-          <div className="header-controls">
-            <div className="stat-pill gold" style={{ fontFamily: 'var(--font-mono, monospace)' }}>
-              <span>{discoveredIds.size}/{INDEX_RECIPES.length} INDICES COMPUTED</span>
+          <div className="flex items-center gap-3">
+            <div className="discovery-counter-chip">
+              <strong>7 DOCUMENTED INDICES</strong>
+            </div>
+            <div className="workspace-switcher" role="group" aria-label="Choose workspace">
+              <button
+                type="button"
+                className={workspaceMode === 'guided' ? 'active' : ''}
+                onClick={() => setWorkspaceMode('guided')}
+              >
+                Index Deck
+              </button>
+              <button
+                type="button"
+                className={workspaceMode === 'formula-lab' ? 'active' : ''}
+                onClick={() => setWorkspaceMode('formula-lab')}
+              >
+                Formula Lab
+              </button>
             </div>
             <button className="btn-small" type="button" onClick={() => setIsFieldGuideOpen(true)}>
               Field Guide & Specs
@@ -156,8 +169,10 @@ export default function App() {
 
         <main className="dashboard-grid">
           <section className="center-shell">
+            {workspaceMode === 'guided' ? (
+              <React.Fragment>
             <div className="fusion-workbench">
-              <div className="fusion-workbench-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <div className="fusion-workbench-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.4rem' }}>
                 <div>
                   <span className="fusion-workbench-kicker">SPECTRAL BAND SELECTION</span>
                   <strong>Select 2 or 3 multispectral bands to compute a spectral index.</strong>
@@ -191,44 +206,26 @@ export default function App() {
                 </div>
               </div>
               <div className="workbench-card-grid" aria-label="Spectral bands">
-                {activeBands.map(band => {
-                  const isSelected = selectedBandIds.includes(band.id);
-                  return (
-                    <button
-                      key={band.id}
-                      type="button"
-                      className={`relic-card-tile ${isSelected ? 'selected' : ''}`}
-                      style={isSelected ? { borderColor: band.color, boxShadow: `0 0 0 3px ${band.color}66, 0 8px 30px rgba(0,0,0,0.6)` } : undefined}
-                      onClick={() => handleBandClick(band.id)}
-                      aria-pressed={isSelected}
-                      aria-label={`${band.name} band, wavelength ${band.wavelength}`}
-                    >
-                      <div className="card-top-sensor-tag">
-                        <span className="sensor-chip">{band.sensorTag}</span>
-                      </div>
-                      <div className={`relic-card-art band-swatch-${band.id}`} style={{ flexDirection: 'column', justifyContent: 'center', gap: '0.4rem', padding: '0.5rem 0', position: 'relative' }}>
-                        <div className="spectral-wave-overlay" />
-                        <span style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-mono, monospace)', color: '#ffffff', zIndex: 1 }}>{band.bandCode}</span>
-                        <span className="band-wavelength" style={{ zIndex: 1, fontFamily: 'var(--font-mono, monospace)' }}>{band.wavelength} ({band.resolution})</span>
-                      </div>
-                      <div className="card-bottom-plate">
-                        <strong>{band.name}</strong>
-                      </div>
-                    </button>
-                  );
-                })}
+                {activeBands.map(band => (
+                  <FlippableBandCard
+                    key={band.id}
+                    band={band}
+                    isSelected={selectedBandIds.includes(band.id)}
+                    onSelect={handleBandClick}
+                  />
+                ))}
               </div>
             </div>
 
             <div className="active-selection-preview-panel">
               <div className="preview-title">Active Spectral Computation</div>
               {selectedBandIds.length === 0 && (
-                <div style={{ color: '#64748b', fontSize: '0.85rem', textAlign: 'center', padding: '0.75rem' }}>
+                  <div style={{ color: '#64748b', fontSize: '0.82rem', textAlign: 'center', padding: '0.35rem' }}>
                   Select 2 or 3 spectral bands above to evaluate their index formula (e.g., select NIR + Red + Blue for EVI!).
                 </div>
               )}
               {selectedBandIds.length === 1 && (
-                <div style={{ color: '#38bdf8', fontSize: '0.85rem', textAlign: 'center', padding: '0.75rem' }}>
+                  <div style={{ color: '#38bdf8', fontSize: '0.82rem', textAlign: 'center', padding: '0.35rem' }}>
                   Selected {getBand(selectedBandIds[0]).name}. Select 1 or 2 more bands to compute a spectral index.
                 </div>
               )}
@@ -238,7 +235,7 @@ export default function App() {
                   {result.recipe.bands.map((bId, idx) => (
                     <React.Fragment key={bId}>
                       {idx > 0 && <div className="equation-symbol">+</div>}
-                      <EquationBandCard bandId={bId} />
+                      <EquationBandCard bandId={bId} satelliteMode={satelliteMode} />
                     </React.Fragment>
                   ))}
                   <div className="equation-symbol">=</div>
@@ -274,7 +271,7 @@ export default function App() {
                     <div className="index-meaning-text">{result.recipe.meaning}</div>
                   </div>
                 </div>
-                <SplitSatelliteViewer recipe={result.recipe} />
+                <SplitSatelliteViewer recipe={result.recipe} satelliteMode={satelliteMode} />
               </React.Fragment>
               )}
               {result && result.kind === 'mismatch' && (
@@ -282,7 +279,7 @@ export default function App() {
                   {result.selected.map((bId, idx) => (
                     <React.Fragment key={bId}>
                       {idx > 0 && <div className="equation-symbol">+</div>}
-                      <EquationBandCard bandId={bId} />
+                      <EquationBandCard bandId={bId} satelliteMode={satelliteMode} />
                     </React.Fragment>
                   ))}
                   <div className="equation-symbol">=</div>
@@ -293,31 +290,75 @@ export default function App() {
                 </div>
               )}
             </div>
+              </React.Fragment>
+            ) : (
+              <FormulaLab satelliteMode={satelliteMode} />
+            )}
           </section>
 
           <section className="side-panel right sidebar-panel">
-            <div className="discovery-log-panel">
-              <div className="discovery-log-title">Discovered Indices</div>
-              <div className="discovery-log-grid">
-                {INDEX_RECIPES.map(recipe => {
-                  const unlocked = discoveredIds.has(recipe.id);
-                  return (
-                    <div key={recipe.id} className={`discovery-log-slot ${unlocked ? 'unlocked' : 'locked'}`}>
+            {workspaceMode === 'guided' ? (
+              <div className="discovery-log-panel">
+                <div className="discovery-log-title">Index Reference Library</div>
+                <div className="discovery-log-grid">
+                  {INDEX_RECIPES.map(recipe => {
+                    const isActive = result?.kind === 'match' && result.recipe.id === recipe.id;
+                    return (
                       <div
-                        className="discovery-log-art"
-                        style={unlocked ? { backgroundImage: `url(${recipe.cardArt})` } : undefined}
+                        key={recipe.id}
+                        className={`discovery-log-slot unlocked ${isActive ? 'active-index' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Select ${recipe.id.toUpperCase()} index`}
+                        onClick={() => selectDiscoveredIndex(recipe)}
+                        onKeyDown={(e: React.KeyboardEvent) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            selectDiscoveredIndex(recipe);
+                          }
+                        }}
                       >
-                        {!unlocked && <span aria-hidden="true">?</span>}
+                        <div
+                          className="discovery-log-art"
+                          style={{ backgroundImage: `url(${recipe.cardArt})` }}
+                        >
+                          <span className={`index-suit-chip family-${recipe.suit}`}>
+                            {TRAIT_FAMILIES[recipe.suit].glyph}
+                          </span>
+                        </div>
+                        <div className="discovery-log-info">
+                          <div className="discovery-log-name">{recipe.id.toUpperCase()}</div>
+                          <div className="discovery-log-formula"><code>{recipe.formula}</code></div>
+                        </div>
                       </div>
-                      <div className="discovery-log-name">{unlocked ? recipe.id.toUpperCase() : 'Locked'}</div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+                <p className="discovery-log-hint">
+                  Click an index to load its documented formula and inspect an illustrative scene. The overlay is a teaching visualization, not a calculation from the photo.
+                </p>
               </div>
-              <p className="discovery-log-hint">
-                Every real index here shares the same shape: (A − B) / (A + B). And every one of them uses NIR — it's the single most useful band in remote sensing, because vegetation, water, and built surfaces each interact with it in a distinctive way.
-              </p>
-            </div>
+            ) : (
+              <div className="lab-protocol-panel">
+                <span className="lab-protocol-number">LAB PROTOCOL 01</span>
+                <h2>Signal before search.</h2>
+                <ol>
+                  <li><strong>Name the target.</strong><span>One formula cannot be “useful” in general.</span></li>
+                  <li><strong>Explain the physics.</strong><span>Choose bands for a reason before seeing a score.</span></li>
+                  <li><strong>Challenge confusers.</strong><span>Water, soil, burns, vegetation, and built surfaces can overlap.</span></li>
+                  <li><strong>Beat a baseline.</strong><span>Compare with NDVI, NDWI, NBR, or NDBI.</span></li>
+                  <li><strong>Keep the claim small.</strong><span>A classroom reference set cannot validate a new index.</span></li>
+                </ol>
+                <div className="lab-protocol-boundary">
+                  <strong>Bounded by design</strong>
+                  <span>6 formula families</span>
+                  <span>2–4 band roles</span>
+                  <span>7 reflectance bands</span>
+                  <span>Teaching model · no discovery claim</span>
+                </div>
+                <p>Automated spectral-index discovery is established research; this lab teaches a small, hypothesis-first workflow. Thermal T10 is excluded because it measures emitted rather than reflected energy.</p>
+              </div>
+            )}
           </section>
         </main>
       </div>

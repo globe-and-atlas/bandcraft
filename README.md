@@ -1,6 +1,8 @@
-# Bandcraft
+# Limn Signal
 
-Bandcraft is an interactive remote-sensing lab for AP Environmental Science (APES). Students combine real satellite bands, evaluate real spectral-index formulas, compare Sentinel-2 MSI and Landsat-8 OLI/TIRS band numbering, and inspect the physical reasoning behind each result.
+*A Globe & Atlas game of spectral bandcraft.*
+
+Limn Signal is an interactive remote-sensing lab for AP Environmental Science (APES). Students combine sensor band roles, evaluate documented spectral-index formulas, compare Sentinel-2 MSI and Landsat-8 OLI/TIRS band numbering, and inspect the physical reasoning behind each result.
 
 It is a standalone educational project in the Globe & Atlas / Limn-Atlas ecosystem.
 
@@ -46,4 +48,4 @@ The index-card imagery is credited in the in-app Field Guide. The landing-screen
 
 ## Status
 
-Bandcraft is an actively developed educational prototype and free web release. The current app is intentionally focused on inspectable band math rather than an economy or resource-limiting game loop.
+Limn Signal is an actively developed educational prototype and free web release. Its Formula Lab uses hand-authored teaching signatures to demonstrate hypothesis testing and confuser analysis; it does not claim automated index discovery or scientific validation. The current app is intentionally focused on inspectable band math rather than an economy or resource-limiting game loop.

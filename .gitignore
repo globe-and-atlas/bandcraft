@@ -24,6 +24,7 @@ credentials.json
 # Claude Code — keep settings.local.json, ignore session data
 .claude/.claude.json
 .claude/todos/
+.claude/agent-memory/
 
 # OS
 .DS_Store

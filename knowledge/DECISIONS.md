@@ -15,3 +15,13 @@
 **Reason**: An educational tool whose central mechanic doesn't teach the thing it claims to teach (real remote-sensing band math) undermines its own purpose, however polished the surrounding game economy is. The original fork carried forward relic-rack-v2's full mechanic wholesale, not just its visual theme — see `task.md`'s Progress Log for the session history.
 
 **How to apply**: Any new feature must route through real formulas/real data (see `src/data/indices.ts`), never an invented "plausible" output. If a future suit/domain doesn't reduce to real band math the game already supports, it stays reference-only in the Field Guide rather than getting a fabricated craftable recipe.
+
+## 2026-07-26 — Keep formula discovery bounded and separate from known indices
+
+**Decision**: Added a separate Formula Lab with six curated formula archetypes and two-to-four ordered band roles. The player must choose a target and state a physical hypothesis before running a 15-signature confuser challenge. Candidate formulas receive contrast, pairwise robustness, and interpretability scores plus comparison with an established target-specific baseline.
+
+**Boundary**: The teaching signatures are hand-authored plausible reflectance values, not measured observations, training labels, or validation data. Results are always marked experimental, never unlock or name a known index, and cannot support scientific novelty or performance claims. Thermal T10 is excluded because the lab currently models reflected-light relationships.
+
+**Reason**: Exhaustive permutation would produce search noise and encourage correlation hunting. A bounded hypothesis → formula → refutation loop teaches the role of formula structure while making failure and confounding surfaces visible.
+
+**How to apply**: New formula families require a plain-language physical interpretation, safe denominator behavior, deterministic tests, and a clear complexity cost. Any future real-data mode must use versioned independent labels, geographic and temporal holdouts, uncertainty reporting, and established-index baselines.
